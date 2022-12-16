@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#E6E6E6">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/main_home_challenge_list_item_card_view"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:foreground="?android:attr/selectableItemBackground"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/white">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/main_home_challenge_list_item_user_image"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:src="@mipmap/ic_launcher" />
+
+            <TextView
+                android:id="@+id/main_home_challenge_list_item_user_username"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="32dp"
+                android:ellipsize="end"
+                android:fontFamily="@font/raleway_medium"
+                android:maxLines="1"
+                android:textColor="@android:color/black"
+                app:layout_constraintBottom_toBottomOf="@+id/main_home_challenge_list_item_user_image"
+                app:layout_constraintEnd_toStartOf="@+id/main_home_challenge_list_item_challenges_time_ago"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toEndOf="@+id/main_home_challenge_list_item_user_image"
+                app:layout_constraintTop_toTopOf="@+id/main_home_challenge_list_item_user_image"
+                app:layout_constraintVertical_bias="0.060000002"
+                tools:text="username" />
+
+            <TextView
+                android:id="@+id/main_home_challenge_list_item_challenges_username"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="@font/raleway_medium"
+                android:maxLines="1"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toBottomOf="@+id/main_home_challenge_list_item_user_image"
+                app:layout_constraintEnd_toEndOf="@+id/main_home_challenge_list_item_user_username"
+                app:layout_constraintStart_toStartOf="@+id/main_home_challenge_list_item_user_username"
+                app:layout_constraintTop_toBottomOf="@+id/main_home_challenge_list_item_user_username"
+                tools:text="challenges username" />
+
+            <TextView
+                android:id="@+id/main_home_challenge_list_item_challenges_time_ago"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:fontFamily="@font/raleway_medium"
+                android:textSize="10sp"
+                app:layout_constraintBottom_toBottomOf="@+id/main_home_challenge_list_item_user_image"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/main_home_challenge_list_item_user_image"
+                tools:text="1 minute ago" />
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/main_home_challenge_list_item_challenge_text_card_view"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                app:cardBackgroundColor="@color/colorAccent"
+                app:cardCornerRadius="10dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/main_home_challenge_list_item_user_image">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:id="@+id/main_home_challenge_list_item_challenge_text"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/raleway_medium"
+                        android:padding="24dp"
+                        android:textAlignment="center"
+                        android:textColor="@android:color/white"
+                        android:textSize="18sp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        tools:text="Challenge text will be shown here no matter what and no matter how long it is" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:id="@+id/main_home_challenge_list_item_prize_list"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:fontFamily="@font/raleway_medium"
+                android:textColor="@android:color/black"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/main_home_challenge_list_item_challenge_text_card_view"
+                app:lineHeight="24dp"
+                tools:text="Prize:\n1) 5 insta followers\n2) story shoutout" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/main_home_challenge_list_item_challenge_status_completed_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="#00BA00"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/main_home_challenge_list_item_prize_list">
+
+                <ImageView
+                    android:id="@+id/imageView2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    app:layout_constraintBottom_toBottomOf="@+id/textView6"
+                    app:layout_constraintEnd_toStartOf="@+id/textView6"
+                    app:layout_constraintTop_toTopOf="@+id/textView6"
+                    app:srcCompat="@mipmap/check_circle_32dp" />
+
+                <TextView
+                    android:id="@+id/textView6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="16dp"
+                    android:fontFamily="@font/raleway_semibold"
+                    android:text="@string/completed"
+                    android:textAllCaps="true"
+                    android:textColor="@android:color/white"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.6"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/main_home_challenge_list_item_challenge_status_failed_layout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="#FF1F1F"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/main_home_challenge_list_item_challenge_status_completed_layout">
+
+                <ImageView
+                    android:id="@+id/imageView3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    app:layout_constraintBottom_toBottomOf="@+id/textView7"
+                    app:layout_constraintEnd_toStartOf="@+id/textView7"
+                    app:layout_constraintTop_toTopOf="@+id/textView7"
+                    app:srcCompat="@mipmap/close_circle_32dp" />
+
+                <TextView
+                    android:id="@+id/textView7"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="16dp"
+                    android:fontFamily="@font/raleway_semibold"
+                    android:text="@string/failed"
+                    android:textAllCaps="true"
+                    android:textColor="@android:color/white"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.55"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/main_home_challenge_list_item_challenge_accept_reject_buttons_layout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/main_home_challenge_list_item_challenge_status_failed_layout">
+
+                <Button
+                    android:id="@+id/main_home_challenge_list_item_accept_button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="8dp"
+                    android:backgroundTint="#00BA00"
+                    android:fontFamily="@font/raleway_semibold"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:text="@string/accept"
+                    android:textAllCaps="true"
+                    android:textColor="@android:color/white"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/divider2"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/divider2" />
+
+                <View
+                    android:id="@+id/divider2"
+                    android:layout_width="1dp"
+                    android:layout_height="0dp"
+                    android:background="?android:attr/listDivider"
+                    android:visibility="invisible"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <Button
+                    android:id="@+id/main_home_challenge_list_item_reject_button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="16dp"
+                    android:backgroundTint="#FF1F1F"
+                    android:fontFamily="@font/raleway_semibold"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:text="@string/reject"
+                    android:textAllCaps="true"
+                    android:textColor="@android:color/white"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/divider2"
+                    app:layout_constraintTop_toTopOf="@+id/divider2" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/main_home_challenge_list_item_challenge_completed_failed_buttons_layout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/main_home_challenge_list_item_challenge_accept_reject_buttons_layout">
+
+                <Button
+                    android:id="@+id/main_home_challenge_list_item_completed_button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="8dp"
+                    android:backgroundTint="#00BA00"
+                    android:fontFamily="@font/raleway_semibold"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:text="@string/completed"
+                    android:textAllCaps="true"
+                    android:textColor="@android:color/white"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/divider3"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/divider3" />
+
+                <View
+                    android:id="@+id/divider3"
+                    android:layout_width="1dp"
+                    android:layout_height="0dp"
+                    android:background="?android:attr/listDivider"
+                    android:visibility="invisible"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <Button
+                    android:id="@+id/main_home_challenge_list_item_failed_button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="16dp"
+                    android:backgroundTint="#FF1F1F"
+                    android:fontFamily="@font/raleway_semibold"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:text="@string/failed"
+                    android:textAllCaps="true"
+                    android:textColor="@android:color/white"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/divider3"
+                    app:layout_constraintTop_toTopOf="@+id/divider3" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <ImageButton
+                android:id="@+id/main_home_challenge_list_item_like_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="?selectableItemBackgroundBorderless"
+                app:layout_constraintBottom_toBottomOf="@+id/main_home_challenge_list_item_comment_button"
+                app:layout_constraintEnd_toStartOf="@+id/main_home_challenge_list_item_comment_button"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/main_home_challenge_list_item_comment_button"
+                app:srcCompat="@drawable/ic_like_grey_32dp" />
+
+            <TextView
+                android:id="@+id/main_home_challenge_list_item_like_counter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:fontFamily="@font/raleway_medium"
+                android:text="0"
+                app:layout_constraintBottom_toBottomOf="@+id/main_home_challenge_list_item_like_button"
+                app:layout_constraintStart_toEndOf="@+id/main_home_challenge_list_item_like_button"
+                app:layout_constraintTop_toTopOf="@+id/main_home_challenge_list_item_like_button" />
+
+            <ImageButton
+                android:id="@+id/main_home_challenge_list_item_comment_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp"
+                android:background="?selectableItemBackgroundBorderless"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/main_home_challenge_list_item_challenge_completed_failed_buttons_layout"
+                app:srcCompat="@drawable/ic_comment_grey_32dp" />
+
+            <TextView
+                android:id="@+id/main_home_challenge_list_item_comment_counter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:fontFamily="@font/raleway_medium"
+                android:text="0"
+                app:layout_constraintBottom_toBottomOf="@+id/main_home_challenge_list_item_comment_button"
+                app:layout_constraintStart_toEndOf="@+id/main_home_challenge_list_item_comment_button"
+                app:layout_constraintTop_toTopOf="@+id/main_home_challenge_list_item_comment_button" />
+
+            <ImageButton
+                android:id="@+id/main_home_challenge_list_item_share_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="?selectableItemBackgroundBorderless"
+                app:layout_constraintBottom_toBottomOf="@+id/main_home_challenge_list_item_comment_button"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/main_home_challenge_list_item_comment_button"
+                app:layout_constraintTop_toTopOf="@+id/main_home_challenge_list_item_comment_button"
+                app:srcCompat="@drawable/ic_share_grey_32dp" />
+
+            <TextView
+                android:id="@+id/main_home_challenge_list_item_share_counter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:fontFamily="@font/raleway_medium"
+                android:text="0"
+                app:layout_constraintBottom_toBottomOf="@+id/main_home_challenge_list_item_share_button"
+                app:layout_constraintStart_toEndOf="@+id/main_home_challenge_list_item_share_button"
+                app:layout_constraintTop_toTopOf="@+id/main_home_challenge_list_item_share_button" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="colorPrimary">#E1320F</color>
+    <color name="colorPrimaryDark">#CD2D0A</color>
+    <color name="colorAccent">#0A73A0</color>
+
+    <color name="colorGray">#808080</color>
+
+    <color name="colorGradientStart">#E1320F</color>
+    <color name="colorGradientCenter">#765358</color>
+    <color name="colorGradientEnd">#0A73A0</color>
+
+    <color name="colorGoogleForms">#673AB7</color>
+    <color name="colorWhatsApp">#25D366</color>
+
+</resources>

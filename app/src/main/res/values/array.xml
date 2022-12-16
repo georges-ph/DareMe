@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="user_type">
+        <item>@string/player</item>
+        <item>@string/watcher</item>
+    </string-array>
+
+    <string-array name="colors">
+        <item>#9F2C6C</item>
+        <item>#7C8DA0</item>
+        <item>#5394F8</item>
+        <item>#6C257C</item>
+        <item>#23353E</item>
+        <item>#FF7518</item>
+        <item>#FAAB60</item>
+        <item>#8CBED5</item>
+        <item>#012FA7</item>
+        <item>#F4BBFF</item>
+        <item>#FD0E35</item>
+        <item>#645552</item>
+        <item>#EDDC82</item>
+        <item>#ACE0AF</item>
+        <item>#0F52BA</item>
+        <item>#FF1DCE</item>
+        <item>#A3ADD0</item>
+        <item>#DA8A67</item>
+    </string-array>
+
+</resources>

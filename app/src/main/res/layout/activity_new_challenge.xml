@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/new_challenge_constraint_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    tools:context=".NewChallengeActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/new_challenge_toolbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="?attr/actionBarTheme"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/new_challenge_toolbar">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+
+            <EditText
+                android:id="@+id/new_challenge_player_username"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:ems="10"
+                android:fontFamily="@font/raleway_medium"
+                android:hint="@string/who_you_are_challenging_player_s_username"
+                android:inputType="textPersonName"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <EditText
+                android:id="@+id/new_challenge_prize"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:ems="10"
+                android:fontFamily="@font/raleway_medium"
+                android:gravity="start|top"
+                android:hint="@string/what_the_player_will_get_when_completing_your_challenge_n_for_example_you_can_give_him_a_shoutout_on_instagram"
+                android:inputType="textMultiLine"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/new_challenge_description" />
+
+            <Button
+                android:id="@+id/new_challenge_add_challenge_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/button_background"
+                android:fontFamily="@font/raleway_semibold"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:text="@string/add_challenge"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/new_challenge_prize" />
+
+            <EditText
+                android:id="@+id/new_challenge_description"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:ems="10"
+                android:fontFamily="@font/raleway_medium"
+                android:gravity="start|top"
+                android:hint="@string/describe_your_challenge_n_do_not_suggest_harmful_and_violent_challenges_otherwise_your_account_will_be_banned"
+                android:inputType="textMultiLine"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/new_challenge_player_username" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/new_challenge_players_recycler_view"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:background="@android:color/white"
+                android:overScrollMode="never"
+                android:visibility="gone"
+                app:layout_constraintBottom_toTopOf="@+id/new_challenge_add_challenge_button"
+                app:layout_constraintEnd_toEndOf="@+id/new_challenge_player_username"
+                app:layout_constraintStart_toStartOf="@+id/new_challenge_player_username"
+                app:layout_constraintTop_toBottomOf="@+id/new_challenge_player_username"
+                tools:listitem="@layout/new_challenge_players_list_item" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <include layout="@layout/no_connection" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

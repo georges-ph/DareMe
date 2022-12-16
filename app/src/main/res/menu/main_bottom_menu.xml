@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/main_bottom_menu_home_fragment"
+        android:icon="@drawable/ic_home_grey_32dp"
+        android:title="@string/home" />
+    <item
+        android:id="@+id/main_bottom_menu_my_challenges_fragment"
+        android:icon="@drawable/ic_list_grey_32dp"
+        android:title="@string/my_challenges" />
+    <item
+        android:id="@+id/main_bottom_menu_account_fragment"
+        android:icon="@drawable/ic_person_grey_32dp"
+        android:title="@string/account" />
+    
+</menu>
