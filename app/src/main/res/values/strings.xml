@@ -1,6 +1,5 @@
 <resources>
-    <string name="app_name">Dare Me</string>
-    <string name="app_name_no_spaces">DareMe</string>
+    <string name="app_name">DareMe</string>
     <string name="no_connection_tap_to_retry">No connection. Tap to retry.</string>
     <string name="update_available">Update available!</string>
     <string name="please_update_the_app_to_continue_using_it">Please update the app to continue using it</string>
