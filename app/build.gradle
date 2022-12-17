@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace 'ga.jundbits.dareme'
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "ga.jundbits.dareme"
@@ -34,8 +34,10 @@ android {
 
 dependencies {
 
+    // AndroidX
     implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 
     // Google
     implementation 'com.google.android.material:material:1.7.0'
@@ -44,41 +46,41 @@ dependencies {
     implementation 'de.hdodenhof:circleimageview:3.1.0'
 
     // Firebase
-    implementation 'com.google.firebase:firebase-firestore:21.4.3'
-    implementation 'com.google.firebase:firebase-auth:19.3.1'
-    implementation 'com.google.firebase:firebase-storage:19.1.1'
-    implementation 'com.google.firebase:firebase-dynamic-links:19.1.0'
+    implementation platform('com.google.firebase:firebase-bom:31.0.2')
+    implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-storage'
+    implementation 'com.google.firebase:firebase-dynamic-links'
+    implementation 'com.google.firebase:firebase-messaging'
 
     // Firebase UI
-    implementation 'com.firebaseui:firebase-ui-firestore:6.2.1'
-    implementation 'com.firebaseui:firebase-ui-auth:6.2.1'
-    implementation 'com.firebaseui:firebase-ui-storage:6.2.1'
+    implementation 'com.firebaseui:firebase-ui-firestore:8.0.2'
+    implementation 'com.firebaseui:firebase-ui-auth:8.0.2'
+    implementation 'com.firebaseui:firebase-ui-storage:8.0.2'
 
     // Easy Device Info
     implementation 'com.github.nisrulz:easydeviceinfo-base:2.4.1'
 
     // Dexter
-    implementation 'com.karumi:dexter:6.1.0'
+    implementation 'com.karumi:dexter:6.2.3'
 
     // Firestore Paging
-    implementation 'android.arch.paging:runtime:2.1.1'
+    implementation 'androidx.paging:paging-runtime:3.1.1'
 
     // Glide
-    implementation 'com.github.bumptech.glide:glide:4.11.0'
-    implementation 'com.google.firebase:firebase-messaging:20.1.7'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
+    implementation 'com.github.bumptech.glide:glide:4.14.2'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.14.2'
 
     // QuickShot
-    implementation 'com.muddzdev:quickshot:1.2.0'
+    implementation 'io.github.muddz:quickshot:1.4.0'
 
     // android-storage
-    implementation 'com.snatik:storage:2.1.0'
+//    implementation 'com.snatik:storage:2.1.0'
 
-    implementation files('libs/activation.jar')
-    implementation files('libs/additional.jar')
-    implementation files('libs/mail.jar')
+    implementation 'com.github.yesidlazaro:GmailBackground:1.2.0'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.4'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
+
 }
