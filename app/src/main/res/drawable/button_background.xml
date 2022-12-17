@@ -3,11 +3,11 @@
 
     <item android:state_enabled="false">
         <shape>
-            <stroke android:width="2dp" android:color="@color/colorGray" />
+            <stroke android:width="2dp" android:color="@color/grey" />
 
             <corners android:radius="8dp" />
 
-            <solid android:color="@color/colorGray" />
+            <solid android:color="@color/grey" />
 
             <padding android:bottom="10dp" android:left="10dp" android:right="10dp" android:top="10dp" />
         </shape>
@@ -15,11 +15,11 @@
 
     <item android:state_enabled="true">
         <shape>
-            <stroke android:width="2dp" android:color="@color/colorAccent" />
+            <stroke android:width="2dp" android:color="@color/blue_500" />
 
             <corners android:radius="8dp" />
 
-            <solid android:color="@color/colorAccent" />
+            <solid android:color="@color/blue_500" />
 
             <padding android:bottom="10dp" android:left="10dp" android:right="10dp" android:top="10dp" />
         </shape>

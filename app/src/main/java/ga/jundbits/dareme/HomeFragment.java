@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.paging.PagedList;
+import androidx.paging.PagingConfig;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -120,10 +121,7 @@ public class HomeFragment extends Fragment implements MainHomeChallengesRecycler
 
         Query query = firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Challenges").orderBy("timestamp", Query.Direction.DESCENDING);
 
-        PagedList.Config config = new PagedList.Config.Builder()
-                .setInitialLoadSizeHint(10)
-                .setPageSize(3)
-                .build();
+        PagingConfig config = new PagingConfig(3, 5, false, 10);
 
         FirestorePagingOptions<MainHomeChallengesModel> options = new FirestorePagingOptions.Builder<MainHomeChallengesModel>()
                 .setLifecycleOwner(this)

@@ -1,18 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-	
-	<color name="colorPrimary">#E1320F</color>
-    <color name="colorPrimaryDark">#CD2D0A</color>
-    <color name="colorAccent">#0A73A0</color>
+    <color name="grey">#808080</color>
 
-    <color name="colorGray">#808080</color>
+	<color name="red_200">#D94223</color>
+	<color name="red_500">#E1320F</color>
+    <color name="red_700">#CD2D0A</color>
+    <color name="blue_200">#1D8BBB</color>
+    <color name="blue_500">#0A73A0</color>
+    <color name="blue_700">#04638C</color>
 
     <color name="colorGradientStart">#E1320F</color>
     <color name="colorGradientCenter">#765358</color>
@@ -20,4 +18,5 @@
 
     <color name="colorGoogleForms">#673AB7</color>
     <color name="colorWhatsApp">#25D366</color>
+
 </resources>

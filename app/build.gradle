@@ -1,5 +1,6 @@
 plugins {
     id 'com.android.application'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -74,8 +75,8 @@ dependencies {
     // QuickShot
     implementation 'io.github.muddz:quickshot:1.4.0'
 
-    // android-storage
-//    implementation 'com.snatik:storage:2.1.0'
+    // SimpleStorage
+    implementation 'com.anggrayudi:storage:1.5.2'
 
     implementation 'com.github.yesidlazaro:GmailBackground:1.2.0'
 

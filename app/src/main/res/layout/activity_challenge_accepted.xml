@@ -35,7 +35,7 @@
                 android:id="@+id/challenge_accepted_challenge_text_layout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:background="@color/colorAccent"
+                android:background="@color/blue_500"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">

@@ -1,11 +1,5 @@
 package ga.jundbits.dareme;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
-
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -18,9 +12,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
@@ -31,8 +28,7 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.FirebaseStorage;
 
 import java.util.HashMap;
@@ -44,6 +40,8 @@ import github.nisrulz.easydeviceinfo.base.NetworkType;
 
 public class SplashActivity extends AppCompatActivity {
 
+    // TODO: 17-Dec-22 https://developer.android.com/develop/ui/views/launch/splash-screen/migrate 
+    
     ConstraintLayout noConnectionLayout;
 
     ConstraintLayout splashUpdateLayout;
@@ -99,21 +97,23 @@ public class SplashActivity extends AppCompatActivity {
         final Map<String, Object> deviceMap = new HashMap<>();
         deviceMap.put("device_id", deviceID);
         deviceMap.put("denied", false);
+        Log
+                .d("msggg","id: "+deviceID);
 
         firebaseFirestore.collection("Devices").document(deviceID)
                 .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
 
-                if (!documentSnapshot.exists()) {
+                        if (!documentSnapshot.exists()) {
 
-                    firebaseFirestore.collection("Devices").document(deviceID)
-                            .set(deviceMap);
+                            firebaseFirestore.collection("Devices").document(deviceID)
+                                    .set(deviceMap);
 
-                }
+                        }
 
-            }
-        });
+                    }
+                });
 
     }
 
@@ -145,7 +145,7 @@ public class SplashActivity extends AppCompatActivity {
                         @Override
                         public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
 
-                            if (documentSnapshot.exists()) {
+                            if (documentSnapshot!=null&& documentSnapshot.exists()) {
 
                                 boolean denied = documentSnapshot.getBoolean("denied");
 
@@ -167,78 +167,78 @@ public class SplashActivity extends AppCompatActivity {
                                         firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
                                                 .collection("App").document("Updates")
                                                 .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                            @Override
-                                            public void onSuccess(DocumentSnapshot snapshot) {
+                                                    @Override
+                                                    public void onSuccess(DocumentSnapshot snapshot) {
 
-                                                double version = snapshot.getDouble("version");
-                                                boolean forceUpdate = snapshot.getBoolean("force_update");
+                                                        double version = snapshot.getDouble("version");
+                                                        boolean forceUpdate = snapshot.getBoolean("force_update");
 
-                                                String currentAppVersion = easyAppMod.getAppVersion();
+                                                        String currentAppVersion = easyAppMod.getAppVersion();
 
-                                                if (currentAppVersion.equals(String.valueOf(version))) {
+                                                        if (currentAppVersion.equals(String.valueOf(version))) {
 
-                                                    startMainActivity();
+                                                            startMainActivity();
 
-                                                } else {
+                                                        } else {
 
-                                                    if (forceUpdate) {
+                                                            if (forceUpdate) {
 
-                                                        splashUpdateLayout.setVisibility(View.VISIBLE);
+                                                                splashUpdateLayout.setVisibility(View.VISIBLE);
 
-                                                        splashUpdateButton.setOnClickListener(new View.OnClickListener() {
-                                                            @Override
-                                                            public void onClick(View v) {
+                                                                splashUpdateButton.setOnClickListener(new View.OnClickListener() {
+                                                                    @Override
+                                                                    public void onClick(View v) {
 
-                                                                Intent intent = new Intent(Intent.ACTION_VIEW);
-                                                                intent.setData(Uri.parse(updateFromURL));
-                                                                startActivity(intent);
+                                                                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                                                                        intent.setData(Uri.parse(updateFromURL));
+                                                                        startActivity(intent);
+
+                                                                    }
+                                                                });
+
+                                                            } else {
+
+                                                                splashUpdateLayout.setVisibility(View.GONE);
+
+                                                                AlertDialog.Builder appUpdateDialogBuilder = new AlertDialog.Builder(SplashActivity.this);
+                                                                appUpdateDialogBuilder.setTitle(getString(R.string.new_version_available));
+                                                                appUpdateDialogBuilder.setMessage(getString(R.string.version) + " " + version + " " + getString(R.string.is_available_current_version_is) + " " + currentAppVersion);
+                                                                appUpdateDialogBuilder.setPositiveButton(getString(R.string.update), new DialogInterface.OnClickListener() {
+                                                                    @Override
+                                                                    public void onClick(DialogInterface dialog, int which) {
+
+                                                                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                                                                        intent.setData(Uri.parse(updateFromURL));
+                                                                        startActivity(intent);
+
+                                                                    }
+                                                                });
+                                                                appUpdateDialogBuilder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                                                                    @Override
+                                                                    public void onClick(DialogInterface dialog, int which) {
+                                                                        dialog.dismiss();
+                                                                        startMainActivity();
+                                                                    }
+                                                                });
+                                                                appUpdateDialogBuilder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                                                    @Override
+                                                                    public void onCancel(DialogInterface dialog) {
+
+                                                                        dialog.dismiss();
+                                                                        startMainActivity();
+
+                                                                    }
+                                                                });
+                                                                appUpdateDialogBuilder.setCancelable(true);
+                                                                AlertDialog appUpdateAlertDialog = appUpdateDialogBuilder.create();
+                                                                appUpdateAlertDialog.show();
 
                                                             }
-                                                        });
 
-                                                    } else {
-
-                                                        splashUpdateLayout.setVisibility(View.GONE);
-
-                                                        AlertDialog.Builder appUpdateDialogBuilder = new AlertDialog.Builder(SplashActivity.this);
-                                                        appUpdateDialogBuilder.setTitle(getString(R.string.new_version_available));
-                                                        appUpdateDialogBuilder.setMessage(getString(R.string.version) + " " + version + " " + getString(R.string.is_available_current_version_is) + " " + currentAppVersion);
-                                                        appUpdateDialogBuilder.setPositiveButton(getString(R.string.update), new DialogInterface.OnClickListener() {
-                                                            @Override
-                                                            public void onClick(DialogInterface dialog, int which) {
-
-                                                                Intent intent = new Intent(Intent.ACTION_VIEW);
-                                                                intent.setData(Uri.parse(updateFromURL));
-                                                                startActivity(intent);
-
-                                                            }
-                                                        });
-                                                        appUpdateDialogBuilder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                                                            @Override
-                                                            public void onClick(DialogInterface dialog, int which) {
-                                                                dialog.dismiss();
-                                                                startMainActivity();
-                                                            }
-                                                        });
-                                                        appUpdateDialogBuilder.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                                                            @Override
-                                                            public void onCancel(DialogInterface dialog) {
-
-                                                                dialog.dismiss();
-                                                                startMainActivity();
-
-                                                            }
-                                                        });
-                                                        appUpdateDialogBuilder.setCancelable(true);
-                                                        AlertDialog appUpdateAlertDialog = appUpdateDialogBuilder.create();
-                                                        appUpdateAlertDialog.show();
+                                                        }
 
                                                     }
-
-                                                }
-
-                                            }
-                                        });
+                                                });
 
                                     }
 
@@ -312,55 +312,55 @@ public class SplashActivity extends AppCompatActivity {
 
                 currentUserDocument.collection("Sessions").whereEqualTo("device_id", deviceID)
                         .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                            @Override
+                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                        if (!queryDocumentSnapshots.isEmpty()) {
+                                if (!queryDocumentSnapshots.isEmpty()) {
 
-                            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
+                                    for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
 
-                                currentUserDocument.collection("Sessions").document(documentSnapshot.getId())
-                                        .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                    @Override
-                                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                                        currentUserDocument.collection("Sessions").document(documentSnapshot.getId())
+                                                .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                                                    @Override
+                                                    public void onSuccess(DocumentSnapshot documentSnapshot) {
 
-                                        boolean loggedIn = documentSnapshot.getBoolean("logged_in");
+                                                        boolean loggedIn = documentSnapshot.getBoolean("logged_in");
 
-                                        if (!loggedIn) {
+                                                        if (!loggedIn) {
 
-                                            firebaseAuth.signOut();
-                                            Toast.makeText(SplashActivity.this, getString(R.string.you_are_not_logged_in), Toast.LENGTH_SHORT).show();
-                                            recreate();
+                                                            firebaseAuth.signOut();
+                                                            Toast.makeText(SplashActivity.this, getString(R.string.you_are_not_logged_in), Toast.LENGTH_SHORT).show();
+                                                            recreate();
 
-                                        } else {
+                                                        } else {
 
-                                            if (canOpenApp) {
+                                                            if (canOpenApp) {
 
-                                                Bundle bundle = new Bundle();
-                                                bundle.putString("user_type", userType);
-                                                bundle.putString("challenge_id", challengeID);
+                                                                Bundle bundle = new Bundle();
+                                                                bundle.putString("user_type", userType);
+                                                                bundle.putString("challenge_id", challengeID);
 
-                                                Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
-                                                mainIntent.putExtras(bundle);
-                                                startActivity(mainIntent);
-                                                finish();
+                                                                Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
+                                                                mainIntent.putExtras(bundle);
+                                                                startActivity(mainIntent);
+                                                                finish();
 
-                                            } else {
-                                                Toast.makeText(SplashActivity.this, getString(R.string.error_please_try_again_later), Toast.LENGTH_SHORT).show();
-                                                finish();
-                                            }
+                                                            } else {
+                                                                Toast.makeText(SplashActivity.this, getString(R.string.error_please_try_again_later), Toast.LENGTH_SHORT).show();
+                                                                finish();
+                                                            }
 
-                                        }
+                                                        }
+
+                                                    }
+                                                });
 
                                     }
-                                });
+
+                                }
 
                             }
-
-                        }
-
-                    }
-                });
+                        });
 
             }
         });
@@ -369,14 +369,16 @@ public class SplashActivity extends AppCompatActivity {
 
     public String getUserToken() {
 
-        FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
-            @Override
-            public void onSuccess(InstanceIdResult instanceIdResult) {
+        FirebaseMessaging.getInstance()
+                .getToken()
+                .addOnSuccessListener(this, new OnSuccessListener<String>() {
+                    @Override
+                    public void onSuccess(String token) {
 
-                userToken = instanceIdResult.getToken();
+                        userToken = token;
 
-            }
-        });
+                    }
+                });
 
         return userToken;
 

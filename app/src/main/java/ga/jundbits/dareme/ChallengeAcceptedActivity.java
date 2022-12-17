@@ -1,12 +1,5 @@
 package ga.jundbits.dareme;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.constraintlayout.widget.ConstraintLayout;
-
 import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -16,6 +9,7 @@ import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.provider.Settings;
@@ -28,6 +22,13 @@ import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -46,8 +47,6 @@ import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
-import com.muddzdev.quickshot.QuickShot;
-import com.snatik.storage.Storage;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -59,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 
 import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
+import io.github.muddz.quickshot.QuickShot;
 
 public class ChallengeAcceptedActivity extends AppCompatActivity {
 
@@ -94,10 +94,9 @@ public class ChallengeAcceptedActivity extends AppCompatActivity {
 
     EasyNetworkMod easyNetworkMod;
 
-    Storage storage;
-    String appPath;
-    String thumbnailPath;
     String thumbnailFileName;
+
+    File appStorageDirectory, thumbnailStorageDirectory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,10 +129,8 @@ public class ChallengeAcceptedActivity extends AppCompatActivity {
 
         easyNetworkMod = new EasyNetworkMod(this);
 
-        storage = new Storage(ChallengeAcceptedActivity.this);
-
-        appPath = storage.getExternalStorageDirectory() + "/" + getString(R.string.app_name);
-        thumbnailPath = appPath + "/Thumbnails";
+        appStorageDirectory = new File(Environment.getExternalStorageDirectory() + "/" + getString(R.string.app_name));
+        thumbnailStorageDirectory = new File(appStorageDirectory + "/Thumbnails");
 
         setSupportActionBar(challengeAcceptedToolbar);
         getSupportActionBar().setTitle(getString(R.string.challenge_accepted));
@@ -164,9 +161,9 @@ public class ChallengeAcceptedActivity extends AppCompatActivity {
 
                                 if (multiplePermissionsReport.areAllPermissionsGranted()) {
 
-                                    if (!storage.isDirectoryExists(appPath)) {
-                                        storage.createDirectory(appPath);
-                                        storage.createDirectory(thumbnailPath);
+                                    if (!appStorageDirectory.exists()) {
+                                        appStorageDirectory.mkdirs();
+                                        thumbnailStorageDirectory.mkdirs();
                                     }
 
                                     if (clickedFirstTime) {
@@ -262,7 +259,7 @@ public class ChallengeAcceptedActivity extends AppCompatActivity {
             if (gotVideoThumbnail) {
 
                 Uri videoUri = Uri.parse(String.valueOf(challengeAcceptedVideoView.getTag()));
-                File thumbnailFile = storage.getFile(thumbnailPath + "/" + thumbnailFileName + ".jpg");
+                File thumbnailFile = new File(thumbnailStorageDirectory + "/" + thumbnailFileName + ".jpg");
 
                 Bitmap bitmap = null;
                 try {
@@ -280,18 +277,18 @@ public class ChallengeAcceptedActivity extends AppCompatActivity {
 
                 // Get Download Url
                 Task<Uri> urlTask = uploadTaskVideo.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-                    @Override
-                    public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                            @Override
+                            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
 
-                        if (!task.isSuccessful()) {
-                            throw task.getException();
-                        }
+                                if (!task.isSuccessful()) {
+                                    throw task.getException();
+                                }
 
-                        // Continue with the task to get the download URL
-                        return challengeStorageReference.getDownloadUrl();
+                                // Continue with the task to get the download URL
+                                return challengeStorageReference.getDownloadUrl();
 
-                    }
-                })
+                            }
+                        })
                         .addOnCompleteListener(new OnCompleteListener<Uri>() {
                             @Override
                             public void onComplete(@NonNull Task<Uri> task) {
@@ -307,18 +304,18 @@ public class ChallengeAcceptedActivity extends AppCompatActivity {
 
                                                     // Get Download Url Thumb
                                                     Task<Uri> urlTaskThumb = uploadTaskThumbnail.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-                                                        @Override
-                                                        public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                                                                @Override
+                                                                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
 
-                                                            if (!task.isSuccessful()) {
-                                                                throw task.getException();
-                                                            }
+                                                                    if (!task.isSuccessful()) {
+                                                                        throw task.getException();
+                                                                    }
 
-                                                            // Continue with the task to get the download URL
-                                                            return challengeStorageThumbnailReference.getDownloadUrl();
+                                                                    // Continue with the task to get the download URL
+                                                                    return challengeStorageThumbnailReference.getDownloadUrl();
 
-                                                        }
-                                                    })
+                                                                }
+                                                            })
                                                             .addOnCompleteListener(new OnCompleteListener<Uri>() {
                                                                 @Override
                                                                 public void onComplete(@NonNull Task<Uri> task) {
@@ -497,7 +494,7 @@ public class ChallengeAcceptedActivity extends AppCompatActivity {
 
                 QuickShot
                         .of(challengeAcceptedVideoView)
-                        .setPath(thumbnailPath)
+                        .setPath(thumbnailStorageDirectory.getPath())
                         .setFilename(thumbnailFileName)
                         .toJPG()
                         .setResultListener(new QuickShot.QuickShotListener() {
@@ -507,7 +504,7 @@ public class ChallengeAcceptedActivity extends AppCompatActivity {
                             }
 
                             @Override
-                            public void onQuickShotFailed(String path) {
+                            public void onQuickShotFailed(String path, String errorMsg) {
 
                             }
                         })

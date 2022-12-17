@@ -1,10 +1,5 @@
 package ga.jundbits.dareme;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.constraintlayout.widget.ConstraintLayout;
-
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -26,6 +21,11 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -39,8 +39,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -149,60 +148,60 @@ public class LoginActivity extends AppCompatActivity {
 
                         firebaseFirestore.collection("RegisteredEmails").whereEqualTo("email", emailAddress)
                                 .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                            @Override
-                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                    @Override
+                                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                                if (queryDocumentSnapshots.isEmpty()) {
+                                        if (queryDocumentSnapshots.isEmpty()) {
 
-                                    loginProgressDialog.dismiss();
+                                            loginProgressDialog.dismiss();
 
-                                    Snackbar.make(loginConstraintLayout, getString(R.string.email_is_not_registered), Snackbar.LENGTH_SHORT)
-                                            .setAction(getString(R.string.register), new View.OnClickListener() {
-                                                @Override
-                                                public void onClick(View v) {
-                                                    Intent registerIntent = new Intent(LoginActivity.this, RegisterActivity.class);
-                                                    registerIntent.putExtra("user_type", userType);
-                                                    startActivity(registerIntent);
-                                                    finish();
-                                                }
-                                            }).show();
+                                            Snackbar.make(loginConstraintLayout, getString(R.string.email_is_not_registered), Snackbar.LENGTH_SHORT)
+                                                    .setAction(getString(R.string.register), new View.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(View v) {
+                                                            Intent registerIntent = new Intent(LoginActivity.this, RegisterActivity.class);
+                                                            registerIntent.putExtra("user_type", userType);
+                                                            startActivity(registerIntent);
+                                                            finish();
+                                                        }
+                                                    }).show();
 
-                                } else {
+                                        } else {
 
-                                    firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                            .collection("Users").whereEqualTo("email", emailAddress)
-                                            .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                        @Override
-                                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                            firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                                    .collection("Users").whereEqualTo("email", emailAddress)
+                                                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                                        @Override
+                                                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                                            if (queryDocumentSnapshots.isEmpty()) {
+                                                            if (queryDocumentSnapshots.isEmpty()) {
 
-                                                loginProgressDialog.dismiss();
+                                                                loginProgressDialog.dismiss();
 
-                                                Snackbar.make(loginConstraintLayout, getString(R.string.app_is_not_registered), Snackbar.LENGTH_SHORT)
-                                                        .setAction(getString(R.string.register), new View.OnClickListener() {
-                                                            @Override
-                                                            public void onClick(View v) {
-                                                                Intent registerIntent = new Intent(LoginActivity.this, RegisterActivity.class);
-                                                                registerIntent.putExtra("user_type", userType);
-                                                                startActivity(registerIntent);
-                                                                finish();
+                                                                Snackbar.make(loginConstraintLayout, getString(R.string.app_is_not_registered), Snackbar.LENGTH_SHORT)
+                                                                        .setAction(getString(R.string.register), new View.OnClickListener() {
+                                                                            @Override
+                                                                            public void onClick(View v) {
+                                                                                Intent registerIntent = new Intent(LoginActivity.this, RegisterActivity.class);
+                                                                                registerIntent.putExtra("user_type", userType);
+                                                                                startActivity(registerIntent);
+                                                                                finish();
+                                                                            }
+                                                                        }).show();
+
+                                                            } else {
+
+                                                                checkPasswordBeforeSignIn(emailAddress, password);
+
                                                             }
-                                                        }).show();
 
-                                            } else {
-
-                                                checkPasswordBeforeSignIn(emailAddress, password);
-
-                                            }
+                                                        }
+                                                    });
 
                                         }
-                                    });
 
-                                }
-
-                            }
-                        });
+                                    }
+                                });
 
                     } else {
 
@@ -271,46 +270,46 @@ public class LoginActivity extends AppCompatActivity {
         firebaseFirestore.collection("RegisteredEmails").document(emailAddress)
                 .collection("Passwords").document("CurrentPassword")
                 .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot snapshot) {
+                    @Override
+                    public void onSuccess(DocumentSnapshot snapshot) {
 
-                final String registeredPassword = snapshot.getString("password");
+                        final String registeredPassword = snapshot.getString("password");
 
-                if (password.equals(registeredPassword)) {
+                        if (password.equals(registeredPassword)) {
 
-                    signIn(emailAddress, password);
-
-                } else {
-
-                    android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(LoginActivity.this);
-                    builder.setTitle(getString(R.string.different_password_found));
-                    builder.setMessage(getString(R.string.your_email_is_already_registered_with_a_different_password_would_you_like_to_use_your_old_password_or_change_it_with_the_new_one));
-                    builder.setPositiveButton(getString(R.string.login), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            signIn(emailAddress, registeredPassword);
-                        }
-                    });
-                    builder.setNegativeButton(getString(R.string.change_it_and_login), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
                             signIn(emailAddress, password);
-                        }
-                    });
-                    builder.setNeutralButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                            loginProgressDialog.dismiss();
-                        }
-                    });
-                    AlertDialog alertDialog = builder.create();
-                    alertDialog.show();
 
-                }
+                        } else {
 
-            }
-        });
+                            android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(LoginActivity.this);
+                            builder.setTitle(getString(R.string.different_password_found));
+                            builder.setMessage(getString(R.string.your_email_is_already_registered_with_a_different_password_would_you_like_to_use_your_old_password_or_change_it_with_the_new_one));
+                            builder.setPositiveButton(getString(R.string.login), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    signIn(emailAddress, registeredPassword);
+                                }
+                            });
+                            builder.setNegativeButton(getString(R.string.change_it_and_login), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    signIn(emailAddress, password);
+                                }
+                            });
+                            builder.setNeutralButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    loginProgressDialog.dismiss();
+                                }
+                            });
+                            AlertDialog alertDialog = builder.create();
+                            alertDialog.show();
+
+                        }
+
+                    }
+                });
 
     }
 
@@ -396,21 +395,21 @@ public class LoginActivity extends AppCompatActivity {
 
                     currentUserDocument.collection("Sessions").whereEqualTo("device_id", deviceID)
                             .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                        @Override
-                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                @Override
+                                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                            if (!queryDocumentSnapshots.isEmpty()) {
+                                    if (!queryDocumentSnapshots.isEmpty()) {
 
-                                for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
-                                    currentUserDocument.collection("Sessions").document(documentSnapshot.getId()).update(sessionMap);
+                                        for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
+                                            currentUserDocument.collection("Sessions").document(documentSnapshot.getId()).update(sessionMap);
+                                        }
+
+                                    } else {
+                                        currentUserDocument.collection("Sessions").document(String.valueOf(timestampTotalMillis)).set(sessionMap);
+                                    }
+
                                 }
-
-                            } else {
-                                currentUserDocument.collection("Sessions").document(String.valueOf(timestampTotalMillis)).set(sessionMap);
-                            }
-
-                        }
-                    });
+                            });
 
                     loginProgressDialog.dismiss();
                     Toast.makeText(LoginActivity.this, getString(R.string.successfully_logged_in), Toast.LENGTH_SHORT).show();
@@ -494,14 +493,16 @@ public class LoginActivity extends AppCompatActivity {
 
     public String getUserToken() {
 
-        FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
-            @Override
-            public void onSuccess(InstanceIdResult instanceIdResult) {
+        FirebaseMessaging.getInstance()
+                .getToken()
+                .addOnSuccessListener(this, new OnSuccessListener<String>() {
+                    @Override
+                    public void onSuccess(String token) {
 
-                userToken = instanceIdResult.getToken();
+                        userToken = token;
 
-            }
-        });
+                    }
+                });
 
         return userToken;
 

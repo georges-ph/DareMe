@@ -26,7 +26,7 @@
             android:id="@+id/main_banner_layout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@color/colorAccent"
+            android:background="@color/blue_500"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

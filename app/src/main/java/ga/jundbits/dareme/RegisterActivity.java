@@ -1,10 +1,5 @@
 package ga.jundbits.dareme;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.constraintlayout.widget.ConstraintLayout;
-
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -27,11 +22,14 @@ import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.AuthResult;
@@ -43,15 +41,13 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
@@ -178,86 +174,86 @@ public class RegisterActivity extends AppCompatActivity {
                                     firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
                                             .collection("Users").whereEqualTo("username", username)
                                             .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                        @Override
-                                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                                @Override
+                                                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                                            if (queryDocumentSnapshots.isEmpty()) {
+                                                    if (queryDocumentSnapshots.isEmpty()) {
 
-                                                firebaseFirestore.collection("RegisteredEmails").whereEqualTo("email", emailAddress)
-                                                        .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                                    @Override
-                                                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                                        firebaseFirestore.collection("RegisteredEmails").whereEqualTo("email", emailAddress)
+                                                                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                                                    @Override
+                                                                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                                                        if (queryDocumentSnapshots.isEmpty()) {
+                                                                        if (queryDocumentSnapshots.isEmpty()) {
 
-                                                            firebaseAuth.createUserWithEmailAndPassword(emailAddress, password)
-                                                                    .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                                                                        @Override
-                                                                        public void onComplete(@NonNull Task<AuthResult> task) {
+                                                                            firebaseAuth.createUserWithEmailAndPassword(emailAddress, password)
+                                                                                    .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                                                                                        @Override
+                                                                                        public void onComplete(@NonNull Task<AuthResult> task) {
 
-                                                                            if (task.isSuccessful()) {
+                                                                                            if (task.isSuccessful()) {
 
-                                                                                FirebaseUser firebaseUser = task.getResult().getUser();
-                                                                                String currentUserID = firebaseUser.getUid();
-                                                                                createUserDatabase(currentUserID, name, username, emailAddress, password);
+                                                                                                FirebaseUser firebaseUser = task.getResult().getUser();
+                                                                                                String currentUserID = firebaseUser.getUid();
+                                                                                                createUserDatabase(currentUserID, name, username, emailAddress, password);
 
-                                                                            } else {
+                                                                                            } else {
 
-                                                                                registerProgressDialog.dismiss();
-                                                                                showError(task.getException().getMessage());
+                                                                                                registerProgressDialog.dismiss();
+                                                                                                showError(task.getException().getMessage());
 
-                                                                            }
+                                                                                            }
+
+                                                                                        }
+                                                                                    });
+
+                                                                        } else {
+
+                                                                            firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                                                                    .collection("Users").whereEqualTo("email", emailAddress)
+                                                                                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                                                                        @Override
+                                                                                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+
+                                                                                            if (queryDocumentSnapshots.isEmpty()) {
+
+                                                                                                // TODO: maybe i should add a forgot password feature
+
+                                                                                                checkPasswordBeforeSignIn(name, username, emailAddress, password);
+
+                                                                                            } else {
+
+                                                                                                registerProgressDialog.dismiss();
+
+                                                                                                Snackbar.make(registerConstraintLayout, getString(R.string.email_is_already_registered), Snackbar.LENGTH_SHORT)
+                                                                                                        .setAction(getString(R.string.login), new View.OnClickListener() {
+                                                                                                            @Override
+                                                                                                            public void onClick(View v) {
+                                                                                                                Intent loginIntent = new Intent(RegisterActivity.this, LoginActivity.class);
+                                                                                                                loginIntent.putExtra("user_type", userType);
+                                                                                                                startActivity(loginIntent);
+                                                                                                                finish();
+                                                                                                            }
+                                                                                                        }).show();
+
+                                                                                            }
+
+                                                                                        }
+                                                                                    });
+
 
                                                                         }
-                                                                    });
-
-                                                        } else {
-
-                                                            firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                                                    .collection("Users").whereEqualTo("email", emailAddress)
-                                                                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                                                @Override
-                                                                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-
-                                                                    if (queryDocumentSnapshots.isEmpty()) {
-
-                                                                        // TODO: maybe i should add a forgot password feature
-
-                                                                        checkPasswordBeforeSignIn(name, username, emailAddress, password);
-
-                                                                    } else {
-
-                                                                        registerProgressDialog.dismiss();
-
-                                                                        Snackbar.make(registerConstraintLayout, getString(R.string.email_is_already_registered), Snackbar.LENGTH_SHORT)
-                                                                                .setAction(getString(R.string.login), new View.OnClickListener() {
-                                                                                    @Override
-                                                                                    public void onClick(View v) {
-                                                                                        Intent loginIntent = new Intent(RegisterActivity.this, LoginActivity.class);
-                                                                                        loginIntent.putExtra("user_type", userType);
-                                                                                        startActivity(loginIntent);
-                                                                                        finish();
-                                                                                    }
-                                                                                }).show();
 
                                                                     }
+                                                                });
 
-                                                                }
-                                                            });
-
-
-                                                        }
-
+                                                    } else {
+                                                        registerProgressDialog.dismiss();
+                                                        showError(getString(R.string.username_is_not_available));
                                                     }
-                                                });
 
-                                            } else {
-                                                registerProgressDialog.dismiss();
-                                                showError(getString(R.string.username_is_not_available));
-                                            }
-
-                                        }
-                                    });
+                                                }
+                                            });
 
 
                                 } else {
@@ -330,46 +326,46 @@ public class RegisterActivity extends AppCompatActivity {
         firebaseFirestore.collection("RegisteredEmails").document(emailAddress)
                 .collection("Passwords").document("CurrentPassword")
                 .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot snapshot) {
+                    @Override
+                    public void onSuccess(DocumentSnapshot snapshot) {
 
-                final String registeredPassword = snapshot.getString("password");
+                        final String registeredPassword = snapshot.getString("password");
 
-                if (password.equals(registeredPassword)) {
+                        if (password.equals(registeredPassword)) {
 
-                    signIn(name, username, emailAddress, password);
-
-                } else {
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(RegisterActivity.this);
-                    builder.setTitle(getString(R.string.different_password_found));
-                    builder.setMessage(getString(R.string.your_email_is_already_registered_with_a_different_password_would_you_like_to_use_your_old_password_or_change_it_with_the_new_one));
-                    builder.setPositiveButton(getString(R.string.login), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            signIn(name, username, emailAddress, registeredPassword);
-                        }
-                    });
-                    builder.setNegativeButton(getString(R.string.change_it_and_login), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
                             signIn(name, username, emailAddress, password);
-                        }
-                    });
-                    builder.setNeutralButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                            registerProgressDialog.dismiss();
-                        }
-                    });
-                    AlertDialog alertDialog = builder.create();
-                    alertDialog.show();
 
-                }
+                        } else {
 
-            }
-        });
+                            AlertDialog.Builder builder = new AlertDialog.Builder(RegisterActivity.this);
+                            builder.setTitle(getString(R.string.different_password_found));
+                            builder.setMessage(getString(R.string.your_email_is_already_registered_with_a_different_password_would_you_like_to_use_your_old_password_or_change_it_with_the_new_one));
+                            builder.setPositiveButton(getString(R.string.login), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    signIn(name, username, emailAddress, registeredPassword);
+                                }
+                            });
+                            builder.setNegativeButton(getString(R.string.change_it_and_login), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    signIn(name, username, emailAddress, password);
+                                }
+                            });
+                            builder.setNeutralButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    registerProgressDialog.dismiss();
+                                }
+                            });
+                            AlertDialog alertDialog = builder.create();
+                            alertDialog.show();
+
+                        }
+
+                    }
+                });
 
     }
 
@@ -593,14 +589,16 @@ public class RegisterActivity extends AppCompatActivity {
 
     public String getUserToken() {
 
-        FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
-            @Override
-            public void onSuccess(InstanceIdResult instanceIdResult) {
+        FirebaseMessaging.getInstance()
+                .getToken()
+                .addOnSuccessListener(this, new OnSuccessListener<String>() {
+                    @Override
+                    public void onSuccess(String token) {
 
-                userToken = instanceIdResult.getToken();
+                        userToken = token;
 
-            }
-        });
+                    }
+                });
 
         return userToken;
 

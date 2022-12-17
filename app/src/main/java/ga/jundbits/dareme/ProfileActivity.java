@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.paging.PagedList;
+import androidx.paging.PagingConfig;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -196,10 +197,7 @@ public class ProfileActivity extends AppCompatActivity implements AccountProfile
             // Challenges
             Query query = userDocument.collection("CompletedChallenges").orderBy("timestamp", Query.Direction.DESCENDING);
 
-            PagedList.Config config = new PagedList.Config.Builder()
-                    .setInitialLoadSizeHint(15)
-                    .setPageSize(3)
-                    .build();
+            PagingConfig config = new PagingConfig(3, 5, false, 15);
 
             FirestorePagingOptions<AccountProfileChallengesModel> options = new FirestorePagingOptions.Builder<AccountProfileChallengesModel>()
                     .setLifecycleOwner(this)

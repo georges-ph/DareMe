@@ -2,20 +2,19 @@ package ga.jundbits.dareme;
 
 import android.content.Intent;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.paging.PagedList;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.paging.PagingConfig;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.firebase.ui.firestore.paging.FirestorePagingOptions;
@@ -146,67 +145,64 @@ public class AccountFragment extends Fragment implements AccountProfileChallenge
             // Challenges count and text
             currentUserDocument.collection("CompletedChallenges")
                     .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                @Override
-                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        @Override
+                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                    mainAccountChallengesCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
+                            mainAccountChallengesCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
 
-                    if (queryDocumentSnapshots.size() == 1) {
-                        mainAccountChallengesText.setText(getString(R.string.challenge));
-                    } else {
+                            if (queryDocumentSnapshots.size() == 1) {
+                                mainAccountChallengesText.setText(getString(R.string.challenge));
+                            } else {
 
-                        mainAccountChallengesText.setText(getString(R.string.challenges));
+                                mainAccountChallengesText.setText(getString(R.string.challenges));
 
-                        if (queryDocumentSnapshots.isEmpty()) {
-                            mainAccountNoCompletedChallengesText.setVisibility(View.VISIBLE);
+                                if (queryDocumentSnapshots.isEmpty()) {
+                                    mainAccountNoCompletedChallengesText.setVisibility(View.VISIBLE);
+                                }
+
+                            }
+
                         }
-
-                    }
-
-                }
-            });
+                    });
 
             // Followers count and text
             currentUserDocument.collection("Followers")
                     .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                @Override
-                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        @Override
+                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                    mainAccountFollowersCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
+                            mainAccountFollowersCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
 
-                    if (queryDocumentSnapshots.size() == 1) {
-                        mainAccountFollowersText.setText(getString(R.string.follower));
-                    } else {
-                        mainAccountFollowersText.setText(getString(R.string.followers));
-                    }
+                            if (queryDocumentSnapshots.size() == 1) {
+                                mainAccountFollowersText.setText(getString(R.string.follower));
+                            } else {
+                                mainAccountFollowersText.setText(getString(R.string.followers));
+                            }
 
-                }
-            });
+                        }
+                    });
 
             // Likes count and text
             currentUserDocument.collection("Likes")
                     .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                @Override
-                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        @Override
+                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                    mainAccountLikesCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
+                            mainAccountLikesCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
 
-                    if (queryDocumentSnapshots.size() == 1) {
-                        mainAccountLikesText.setText(getString(R.string.like));
-                    } else {
-                        mainAccountLikesText.setText(getString(R.string.likes));
-                    }
+                            if (queryDocumentSnapshots.size() == 1) {
+                                mainAccountLikesText.setText(getString(R.string.like));
+                            } else {
+                                mainAccountLikesText.setText(getString(R.string.likes));
+                            }
 
-                }
-            });
+                        }
+                    });
 
             // Challenges
             Query query = currentUserDocument.collection("CompletedChallenges").orderBy("timestamp", Query.Direction.DESCENDING);
 
-            PagedList.Config config = new PagedList.Config.Builder()
-                    .setInitialLoadSizeHint(15)
-                    .setPageSize(3)
-                    .build();
+            PagingConfig config = new PagingConfig(3, 5, false, 15);
 
             FirestorePagingOptions<AccountProfileChallengesModel> options = new FirestorePagingOptions.Builder<AccountProfileChallengesModel>()
                     .setLifecycleOwner(this)

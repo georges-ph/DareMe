@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.paging.PagedList;
+import androidx.paging.PagingConfig;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -143,10 +144,7 @@ public class MyChallengesFragment extends Fragment implements MyChallengesProfil
                 }
             });
 
-            PagedList.Config config = new PagedList.Config.Builder()
-                    .setInitialLoadSizeHint(15)
-                    .setPageSize(3)
-                    .build();
+            PagingConfig config = new PagingConfig(3, 5, false, 15);
 
             FirestorePagingOptions<MyChallengesProfileChallengesModel> options = new FirestorePagingOptions.Builder<MyChallengesProfileChallengesModel>()
                     .setLifecycleOwner(this)
