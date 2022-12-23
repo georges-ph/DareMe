@@ -1,4 +1,4 @@
-package ga.jundbits.dareme;
+package ga.jundbits.dareme.Activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -6,7 +6,6 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.paging.PagedList;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -28,11 +27,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
-import com.firebase.ui.firestore.paging.FirestorePagingOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.firebase.Timestamp;
@@ -51,6 +47,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import ga.jundbits.dareme.Models.ChallengeCommentsBottomSheetModel;
+import ga.jundbits.dareme.Adapters.ChallengeCommentsBottomSheetRecyclerAdapter;
+import ga.jundbits.dareme.Fragments.AccountFragment;
+import ga.jundbits.dareme.Fragments.HomeFragment;
+import ga.jundbits.dareme.Fragments.MyChallengesFragment;
+import ga.jundbits.dareme.R;
 import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class MainActivity extends AppCompatActivity implements HomeFragment.OpenCommentsBox, HomeFragment.NoConnection, MyChallengesFragment.NoConnection, AccountFragment.NoConnection {

@@ -1,4 +1,4 @@
-package ga.jundbits.dareme;
+package ga.jundbits.dareme.Adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -12,6 +12,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.firebase.ui.firestore.paging.FirestorePagingAdapter;
 import com.firebase.ui.firestore.paging.FirestorePagingOptions;
+
+import ga.jundbits.dareme.Models.AccountProfileChallengesModel;
+import ga.jundbits.dareme.R;
 
 public class AccountProfileChallengesRecyclerAdapter extends FirestorePagingAdapter<AccountProfileChallengesModel, AccountProfileChallengesRecyclerAdapter.ProfileChallengesViewHolder> {
 

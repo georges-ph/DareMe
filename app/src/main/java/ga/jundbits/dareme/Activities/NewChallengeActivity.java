@@ -1,4 +1,4 @@
-package ga.jundbits.dareme;
+package ga.jundbits.dareme.Activities;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -47,6 +47,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+import ga.jundbits.dareme.Models.NewChallengePlayersModel;
+import ga.jundbits.dareme.Adapters.NewChallengePlayersRecyclerAdapter;
+import ga.jundbits.dareme.R;
 import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class NewChallengeActivity extends AppCompatActivity implements NewChallengePlayersRecyclerAdapter.ListItemButtonClick /* implements NewChallengePlayersRecyclerAdapter.ListItemButtonClick */ {

@@ -1,4 +1,4 @@
-package ga.jundbits.dareme;
+package ga.jundbits.dareme.Utils;
 
 import android.content.Context;
 
@@ -6,6 +6,8 @@ import com.google.firebase.Timestamp;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+
+import ga.jundbits.dareme.R;
 
 public class TimeAgo {
 

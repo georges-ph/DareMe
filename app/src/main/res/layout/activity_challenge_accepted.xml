@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white"
-    tools:context=".ChallengeAcceptedActivity">
+    tools:context=".Activities.ChallengeAcceptedActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/challenge_accepted_toolbar"

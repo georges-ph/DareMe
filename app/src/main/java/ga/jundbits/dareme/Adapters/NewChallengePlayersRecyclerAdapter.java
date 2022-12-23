@@ -1,4 +1,4 @@
-package ga.jundbits.dareme;
+package ga.jundbits.dareme.Adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -14,6 +14,8 @@ import com.bumptech.glide.Glide;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import ga.jundbits.dareme.Models.NewChallengePlayersModel;
+import ga.jundbits.dareme.R;
 
 public class NewChallengePlayersRecyclerAdapter extends RecyclerView.Adapter<NewChallengePlayersRecyclerAdapter.NewChallengePlayersViewHolder> {
 

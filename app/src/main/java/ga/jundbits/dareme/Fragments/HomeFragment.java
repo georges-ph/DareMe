@@ -1,4 +1,4 @@
-package ga.jundbits.dareme;
+package ga.jundbits.dareme.Fragments;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -13,7 +13,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
-import androidx.paging.PagedList;
 import androidx.paging.PagingConfig;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -52,6 +51,11 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+import ga.jundbits.dareme.Activities.ChallengeAcceptedActivity;
+import ga.jundbits.dareme.Activities.ChallengeActivity;
+import ga.jundbits.dareme.Adapters.MainHomeChallengesRecyclerAdapter;
+import ga.jundbits.dareme.Models.MainHomeChallengesModel;
+import ga.jundbits.dareme.R;
 import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class HomeFragment extends Fragment implements MainHomeChallengesRecyclerAdapter.ListItemButtonClick {

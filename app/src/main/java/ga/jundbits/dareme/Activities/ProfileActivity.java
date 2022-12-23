@@ -1,10 +1,9 @@
-package ga.jundbits.dareme;
+package ga.jundbits.dareme.Activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.paging.PagedList;
 import androidx.paging.PagingConfig;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,6 +26,9 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import ga.jundbits.dareme.Adapters.AccountProfileChallengesRecyclerAdapter;
+import ga.jundbits.dareme.Models.AccountProfileChallengesModel;
+import ga.jundbits.dareme.R;
 import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class ProfileActivity extends AppCompatActivity implements AccountProfileChallengesRecyclerAdapter.OnListItemClick {

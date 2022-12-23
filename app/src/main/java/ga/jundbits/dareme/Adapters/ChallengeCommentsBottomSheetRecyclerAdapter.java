@@ -1,4 +1,4 @@
-package ga.jundbits.dareme;
+package ga.jundbits.dareme.Adapters;
 
 import android.content.Context;
 import android.content.Intent;
@@ -13,13 +13,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
-import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import ga.jundbits.dareme.Activities.ProfileActivity;
+import ga.jundbits.dareme.Models.ChallengeCommentsBottomSheetModel;
+import ga.jundbits.dareme.R;
+import ga.jundbits.dareme.Utils.TimeAgo;
 
 public class ChallengeCommentsBottomSheetRecyclerAdapter extends FirestoreRecyclerAdapter<ChallengeCommentsBottomSheetModel, ChallengeCommentsBottomSheetRecyclerAdapter.ChallengeCommentsBottomSheetViewHolder> {
 

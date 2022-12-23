@@ -1,20 +1,12 @@
-package ga.jundbits.dareme;
+package ga.jundbits.dareme.Models;
 
-public class ChallengeCommentsBottomSheetModel {
+public class MyChallengesProfileChallengesModel {
 
-    String user_id, image, username, comment;
+    String image, username, challenges_username;
     long date_time_millis;
 
-    public ChallengeCommentsBottomSheetModel() {
+    public MyChallengesProfileChallengesModel() {
 
-    }
-
-    public String getUser_id() {
-        return user_id;
-    }
-
-    public void setUser_id(String user_id) {
-        this.user_id = user_id;
     }
 
     public String getImage() {
@@ -33,12 +25,12 @@ public class ChallengeCommentsBottomSheetModel {
         this.username = username;
     }
 
-    public String getComment() {
-        return comment;
+    public String getChallenges_username() {
+        return challenges_username;
     }
 
-    public void setComment(String comment) {
-        this.comment = comment;
+    public void setChallenges_username(String challenges_username) {
+        this.challenges_username = challenges_username;
     }
 
     public long getDate_time_millis() {
@@ -49,11 +41,10 @@ public class ChallengeCommentsBottomSheetModel {
         this.date_time_millis = date_time_millis;
     }
 
-    public ChallengeCommentsBottomSheetModel(String user_id, String image, String username, String comment, long date_time_millis) {
-        this.user_id = user_id;
+    public MyChallengesProfileChallengesModel(String image, String username, String challenges_username, long date_time_millis) {
         this.image = image;
         this.username = username;
-        this.comment = comment;
+        this.challenges_username = challenges_username;
         this.date_time_millis = date_time_millis;
     }
 

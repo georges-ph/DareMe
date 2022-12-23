@@ -1,4 +1,4 @@
-package ga.jundbits.dareme;
+package ga.jundbits.dareme.Services;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -18,6 +18,8 @@ import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import ga.jundbits.dareme.R;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 

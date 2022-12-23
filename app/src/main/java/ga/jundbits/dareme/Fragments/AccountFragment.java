@@ -1,4 +1,4 @@
-package ga.jundbits.dareme;
+package ga.jundbits.dareme.Fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -28,6 +28,10 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import ga.jundbits.dareme.Models.AccountProfileChallengesModel;
+import ga.jundbits.dareme.Adapters.AccountProfileChallengesRecyclerAdapter;
+import ga.jundbits.dareme.Activities.ChallengeActivity;
+import ga.jundbits.dareme.R;
 import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class AccountFragment extends Fragment implements AccountProfileChallengesRecyclerAdapter.OnListItemClick {

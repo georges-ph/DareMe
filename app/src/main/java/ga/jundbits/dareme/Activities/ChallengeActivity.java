@@ -1,4 +1,4 @@
-package ga.jundbits.dareme;
+package ga.jundbits.dareme.Activities;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -66,6 +66,10 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import ga.jundbits.dareme.Models.ChallengeCommentsBottomSheetModel;
+import ga.jundbits.dareme.Adapters.ChallengeCommentsBottomSheetRecyclerAdapter;
+import ga.jundbits.dareme.R;
+import ga.jundbits.dareme.Utils.TimeAgo;
 import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class ChallengeActivity extends AppCompatActivity implements View.OnClickListener {

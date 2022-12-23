@@ -1,4 +1,4 @@
-package ga.jundbits.dareme;
+package ga.jundbits.dareme.Models;
 
 public class AccountProfileChallengesModel {
 

@@ -1,4 +1,4 @@
-package ga.jundbits.dareme;
+package ga.jundbits.dareme.Adapters;
 
 import android.content.Context;
 import android.content.Intent;
@@ -14,16 +14,17 @@ import com.bumptech.glide.Glide;
 import com.firebase.ui.firestore.paging.FirestorePagingAdapter;
 import com.firebase.ui.firestore.paging.FirestorePagingOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.concurrent.TimeUnit;
-
 import de.hdodenhof.circleimageview.CircleImageView;
+import ga.jundbits.dareme.Activities.ChallengeActivity;
+import ga.jundbits.dareme.Models.MyChallengesProfileChallengesModel;
+import ga.jundbits.dareme.R;
+import ga.jundbits.dareme.Utils.TimeAgo;
 
 public class MyChallengesProfileChallengesRecyclerAdapter extends FirestorePagingAdapter<MyChallengesProfileChallengesModel, MyChallengesProfileChallengesRecyclerAdapter.MyChallengesProfileChallengesViewHolder> {
 
