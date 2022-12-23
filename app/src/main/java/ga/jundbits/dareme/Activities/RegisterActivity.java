@@ -54,36 +54,47 @@ import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    ConstraintLayout noConnectionLayout;
+    private ConstraintLayout noConnectionLayout;
 
-    ConstraintLayout registerConstraintLayout;
-    Toolbar registerToolbar;
-    EditText registerName, registerUsername, registerEmailAddress, registerPassword, registerConfirmPassword;
-    ImageButton registerShowPassword;
-    Spinner registerUserTypeSpinner;
-    Button registerButton;
-    Button registerLoginButton;
+    private ConstraintLayout registerConstraintLayout;
+    private Toolbar registerToolbar;
+    private EditText registerName, registerUsername, registerEmailAddress, registerPassword, registerConfirmPassword;
+    private ImageButton registerShowPassword;
+    private Spinner registerUserTypeSpinner;
+    private Button registerButton;
+    private Button registerLoginButton;
 
-    FirebaseFirestore firebaseFirestore;
-    FirebaseAuth firebaseAuth;
+    private FirebaseFirestore firebaseFirestore;
+    private FirebaseAuth firebaseAuth;
 
-    String userType;
-    String challengeID = "null";
-    String userToken;
+    private String userType;
+    private String challengeID = "null";
+    private String userToken;
 
-    Vibrator vibrator;
+    private Vibrator vibrator;
 
-    ProgressDialog registerProgressDialog;
+    private ProgressDialog registerProgressDialog;
 
-    SharedPreferences registerPreferences;
-    SharedPreferences.Editor editor;
+    private SharedPreferences registerPreferences;
+    private SharedPreferences.Editor editor;
 
-    EasyNetworkMod easyNetworkMod;
+    private EasyNetworkMod easyNetworkMod;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
+
+        initVars();
+        setupToolbar();
+        loadData();
+        loadInputsData();
+        getUserToken();
+        setOnClicks();
+
+    }
+
+    private void initVars() {
 
         noConnectionLayout = findViewById(R.id.no_connection_layout);
 
@@ -112,213 +123,25 @@ public class RegisterActivity extends AppCompatActivity {
 
         easyNetworkMod = new EasyNetworkMod(this);
 
+        registerShowPassword.setColorFilter(Color.RED);
+
+    }
+
+    private void setupToolbar() {
+
         setSupportActionBar(registerToolbar);
         getSupportActionBar().setTitle(getString(R.string.register));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        registerShowPassword.setColorFilter(Color.RED);
+    }
 
-        loadInputsData();
-        getUserToken();
+    private void loadData() {
 
         if (userType.equals("player")) {
             registerUserTypeSpinner.setSelection(0);
         } else if (userType.equals("watcher")) {
             registerUserTypeSpinner.setSelection(1);
         }
-
-        registerShowPassword.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                if (registerPassword.getTransformationMethod() == null) {
-                    registerPassword.setTransformationMethod(new PasswordTransformationMethod());
-                    registerConfirmPassword.setTransformationMethod(new PasswordTransformationMethod());
-                    registerShowPassword.setColorFilter(Color.RED);
-                } else {
-                    registerPassword.setTransformationMethod(null);
-                    registerConfirmPassword.setTransformationMethod(null);
-                    registerShowPassword.setColorFilter(Color.GREEN);
-                }
-
-            }
-        });
-
-        registerButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                closeKeyboard();
-
-                final String name = registerName.getText().toString().trim();
-                final String username = registerUsername.getText().toString().toLowerCase().trim();
-                final String emailAddress = registerEmailAddress.getText().toString().trim();
-                final String password = registerPassword.getText().toString().trim();
-                String confirmPassword = registerConfirmPassword.getText().toString().trim();
-
-                if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(username) && !TextUtils.isEmpty(emailAddress) && !TextUtils.isEmpty(password) && !TextUtils.isEmpty(confirmPassword)) {
-
-                    if (username.length() >= 3) {
-
-                        if (!username.equals("player") && !username.equals("watcher")) {
-
-                            if (password.equals(confirmPassword)) {
-
-                                if (easyNetworkMod.isNetworkAvailable()) {
-
-                                    registerProgressDialog.setTitle(getString(R.string.registering));
-                                    registerProgressDialog.setMessage(getString(R.string.please_wait_do_not_close_the_app));
-                                    registerProgressDialog.setCancelable(false);
-                                    registerProgressDialog.setCanceledOnTouchOutside(false);
-                                    registerProgressDialog.show();
-
-                                    firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                            .collection("Users").whereEqualTo("username", username)
-                                            .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                                @Override
-                                                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-
-                                                    if (queryDocumentSnapshots.isEmpty()) {
-
-                                                        firebaseFirestore.collection("RegisteredEmails").whereEqualTo("email", emailAddress)
-                                                                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                                                    @Override
-                                                                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-
-                                                                        if (queryDocumentSnapshots.isEmpty()) {
-
-                                                                            firebaseAuth.createUserWithEmailAndPassword(emailAddress, password)
-                                                                                    .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                                                                                        @Override
-                                                                                        public void onComplete(@NonNull Task<AuthResult> task) {
-
-                                                                                            if (task.isSuccessful()) {
-
-                                                                                                FirebaseUser firebaseUser = task.getResult().getUser();
-                                                                                                String currentUserID = firebaseUser.getUid();
-                                                                                                createUserDatabase(currentUserID, name, username, emailAddress, password);
-
-                                                                                            } else {
-
-                                                                                                registerProgressDialog.dismiss();
-                                                                                                showError(task.getException().getMessage());
-
-                                                                                            }
-
-                                                                                        }
-                                                                                    });
-
-                                                                        } else {
-
-                                                                            firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                                                                    .collection("Users").whereEqualTo("email", emailAddress)
-                                                                                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                                                                        @Override
-                                                                                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-
-                                                                                            if (queryDocumentSnapshots.isEmpty()) {
-
-                                                                                                // TODO: maybe i should add a forgot password feature
-
-                                                                                                checkPasswordBeforeSignIn(name, username, emailAddress, password);
-
-                                                                                            } else {
-
-                                                                                                registerProgressDialog.dismiss();
-
-                                                                                                Snackbar.make(registerConstraintLayout, getString(R.string.email_is_already_registered), Snackbar.LENGTH_SHORT)
-                                                                                                        .setAction(getString(R.string.login), new View.OnClickListener() {
-                                                                                                            @Override
-                                                                                                            public void onClick(View v) {
-                                                                                                                Intent loginIntent = new Intent(RegisterActivity.this, LoginActivity.class);
-                                                                                                                loginIntent.putExtra("user_type", userType);
-                                                                                                                startActivity(loginIntent);
-                                                                                                                finish();
-                                                                                                            }
-                                                                                                        }).show();
-
-                                                                                            }
-
-                                                                                        }
-                                                                                    });
-
-
-                                                                        }
-
-                                                                    }
-                                                                });
-
-                                                    } else {
-                                                        registerProgressDialog.dismiss();
-                                                        showError(getString(R.string.username_is_not_available));
-                                                    }
-
-                                                }
-                                            });
-
-
-                                } else {
-
-                                    noConnectionLayout.setVisibility(View.VISIBLE);
-
-                                    noConnectionLayout.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-                                            if (easyNetworkMod.isNetworkAvailable()) {
-                                                noConnectionLayout.setVisibility(View.GONE);
-                                            }
-                                        }
-                                    });
-
-                                }
-
-                            } else {
-                                showError(getString(R.string.password_and_confirm_password_dont_match));
-                            }
-
-                        } else {
-                            showError(getString(R.string.username_not_available));
-                        }
-
-                    } else {
-                        showError(getString(R.string.username_too_short));
-                    }
-
-                } else {
-
-                    if (TextUtils.isEmpty(name)) {
-                        registerName.requestFocus();
-                        showError(getString(R.string.name_cannot_be_empty));
-                    } else if (TextUtils.isEmpty(username)) {
-                        registerUsername.requestFocus();
-                        showError(getString(R.string.username_cannot_be_empty));
-                    } else if (TextUtils.isEmpty(emailAddress)) {
-                        registerEmailAddress.requestFocus();
-                        showError(getString(R.string.email_address_cannot_be_empty));
-                    } else if (TextUtils.isEmpty(password)) {
-                        registerPassword.requestFocus();
-                        showError(getString(R.string.password_cannot_be_empty));
-                    } else if (TextUtils.isEmpty(confirmPassword)) {
-                        registerConfirmPassword.requestFocus();
-                        showError(getString(R.string.confirm_password_cannot_be_empty));
-                    }
-
-                }
-
-            }
-        });
-
-        registerLoginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Intent loginIntent = new Intent(RegisterActivity.this, LoginActivity.class);
-                loginIntent.putExtra("user_type", userType);
-                startActivity(loginIntent);
-                finish();
-
-            }
-        });
 
     }
 
@@ -602,6 +425,203 @@ public class RegisterActivity extends AppCompatActivity {
                 });
 
         return userToken;
+
+    }
+
+    private void setOnClicks() {
+
+        registerShowPassword.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (registerPassword.getTransformationMethod() == null) {
+                    registerPassword.setTransformationMethod(new PasswordTransformationMethod());
+                    registerConfirmPassword.setTransformationMethod(new PasswordTransformationMethod());
+                    registerShowPassword.setColorFilter(Color.RED);
+                } else {
+                    registerPassword.setTransformationMethod(null);
+                    registerConfirmPassword.setTransformationMethod(null);
+                    registerShowPassword.setColorFilter(Color.GREEN);
+                }
+
+            }
+        });
+
+        registerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                closeKeyboard();
+
+                final String name = registerName.getText().toString().trim();
+                final String username = registerUsername.getText().toString().toLowerCase().trim();
+                final String emailAddress = registerEmailAddress.getText().toString().trim();
+                final String password = registerPassword.getText().toString().trim();
+                String confirmPassword = registerConfirmPassword.getText().toString().trim();
+
+                if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(username) && !TextUtils.isEmpty(emailAddress) && !TextUtils.isEmpty(password) && !TextUtils.isEmpty(confirmPassword)) {
+
+                    if (username.length() >= 3) {
+
+                        if (!username.equals("player") && !username.equals("watcher")) {
+
+                            if (password.equals(confirmPassword)) {
+
+                                if (easyNetworkMod.isNetworkAvailable()) {
+
+                                    registerProgressDialog.setTitle(getString(R.string.registering));
+                                    registerProgressDialog.setMessage(getString(R.string.please_wait_do_not_close_the_app));
+                                    registerProgressDialog.setCancelable(false);
+                                    registerProgressDialog.setCanceledOnTouchOutside(false);
+                                    registerProgressDialog.show();
+
+                                    firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                            .collection("Users").whereEqualTo("username", username)
+                                            .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                                @Override
+                                                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+
+                                                    if (queryDocumentSnapshots.isEmpty()) {
+
+                                                        firebaseFirestore.collection("RegisteredEmails").whereEqualTo("email", emailAddress)
+                                                                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                                                    @Override
+                                                                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+
+                                                                        if (queryDocumentSnapshots.isEmpty()) {
+
+                                                                            firebaseAuth.createUserWithEmailAndPassword(emailAddress, password)
+                                                                                    .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                                                                                        @Override
+                                                                                        public void onComplete(@NonNull Task<AuthResult> task) {
+
+                                                                                            if (task.isSuccessful()) {
+
+                                                                                                FirebaseUser firebaseUser = task.getResult().getUser();
+                                                                                                String currentUserID = firebaseUser.getUid();
+                                                                                                createUserDatabase(currentUserID, name, username, emailAddress, password);
+
+                                                                                            } else {
+
+                                                                                                registerProgressDialog.dismiss();
+                                                                                                showError(task.getException().getMessage());
+
+                                                                                            }
+
+                                                                                        }
+                                                                                    });
+
+                                                                        } else {
+
+                                                                            firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                                                                    .collection("Users").whereEqualTo("email", emailAddress)
+                                                                                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                                                                        @Override
+                                                                                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+
+                                                                                            if (queryDocumentSnapshots.isEmpty()) {
+
+                                                                                                // TODO: maybe i should add a forgot password feature
+
+                                                                                                checkPasswordBeforeSignIn(name, username, emailAddress, password);
+
+                                                                                            } else {
+
+                                                                                                registerProgressDialog.dismiss();
+
+                                                                                                Snackbar.make(registerConstraintLayout, getString(R.string.email_is_already_registered), Snackbar.LENGTH_SHORT)
+                                                                                                        .setAction(getString(R.string.login), new View.OnClickListener() {
+                                                                                                            @Override
+                                                                                                            public void onClick(View v) {
+                                                                                                                Intent loginIntent = new Intent(RegisterActivity.this, LoginActivity.class);
+                                                                                                                loginIntent.putExtra("user_type", userType);
+                                                                                                                startActivity(loginIntent);
+                                                                                                                finish();
+                                                                                                            }
+                                                                                                        }).show();
+
+                                                                                            }
+
+                                                                                        }
+                                                                                    });
+
+
+                                                                        }
+
+                                                                    }
+                                                                });
+
+                                                    } else {
+                                                        registerProgressDialog.dismiss();
+                                                        showError(getString(R.string.username_is_not_available));
+                                                    }
+
+                                                }
+                                            });
+
+
+                                } else {
+
+                                    noConnectionLayout.setVisibility(View.VISIBLE);
+
+                                    noConnectionLayout.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            if (easyNetworkMod.isNetworkAvailable()) {
+                                                noConnectionLayout.setVisibility(View.GONE);
+                                            }
+                                        }
+                                    });
+
+                                }
+
+                            } else {
+                                showError(getString(R.string.password_and_confirm_password_dont_match));
+                            }
+
+                        } else {
+                            showError(getString(R.string.username_not_available));
+                        }
+
+                    } else {
+                        showError(getString(R.string.username_too_short));
+                    }
+
+                } else {
+
+                    if (TextUtils.isEmpty(name)) {
+                        registerName.requestFocus();
+                        showError(getString(R.string.name_cannot_be_empty));
+                    } else if (TextUtils.isEmpty(username)) {
+                        registerUsername.requestFocus();
+                        showError(getString(R.string.username_cannot_be_empty));
+                    } else if (TextUtils.isEmpty(emailAddress)) {
+                        registerEmailAddress.requestFocus();
+                        showError(getString(R.string.email_address_cannot_be_empty));
+                    } else if (TextUtils.isEmpty(password)) {
+                        registerPassword.requestFocus();
+                        showError(getString(R.string.password_cannot_be_empty));
+                    } else if (TextUtils.isEmpty(confirmPassword)) {
+                        registerConfirmPassword.requestFocus();
+                        showError(getString(R.string.confirm_password_cannot_be_empty));
+                    }
+
+                }
+
+            }
+        });
+
+        registerLoginButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent loginIntent = new Intent(RegisterActivity.this, LoginActivity.class);
+                loginIntent.putExtra("user_type", userType);
+                startActivity(loginIntent);
+                finish();
+
+            }
+        });
 
     }
 

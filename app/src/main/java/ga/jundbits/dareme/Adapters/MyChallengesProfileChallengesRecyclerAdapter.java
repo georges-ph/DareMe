@@ -28,16 +28,16 @@ import ga.jundbits.dareme.Utils.TimeAgo;
 
 public class MyChallengesProfileChallengesRecyclerAdapter extends FirestorePagingAdapter<MyChallengesProfileChallengesModel, MyChallengesProfileChallengesRecyclerAdapter.MyChallengesProfileChallengesViewHolder> {
 
-    Context context;
-    ListItemButtonClick listItemButtonClick;
+    private Context context;
+    private ListItemButtonClick listItemButtonClick;
 
-    TimeAgo timeAgo;
+    private TimeAgo timeAgo;
 
-    FirebaseFirestore firebaseFirestore;
-    FirebaseAuth firebaseAuth;
-    FirebaseUser firebaseUser;
-    String currentUserID;
-    DocumentReference currentUserDocument;
+    private FirebaseFirestore firebaseFirestore;
+    private FirebaseAuth firebaseAuth;
+    private FirebaseUser firebaseUser;
+    private String currentUserID;
+    private DocumentReference currentUserDocument;
 
     public MyChallengesProfileChallengesRecyclerAdapter(@NonNull FirestorePagingOptions<MyChallengesProfileChallengesModel> options, Context context, ListItemButtonClick listItemButtonClick) {
         super(options);

@@ -2,7 +2,7 @@ package ga.jundbits.dareme.Models;
 
 public class AccountProfileChallengesModel {
 
-    String video_thumbnail;
+    private String video_thumbnail;
 
     public AccountProfileChallengesModel() {
 

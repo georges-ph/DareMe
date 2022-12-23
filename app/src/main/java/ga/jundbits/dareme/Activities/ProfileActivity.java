@@ -1,5 +1,12 @@
 package ga.jundbits.dareme.Activities;
 
+import android.content.Intent;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -8,13 +15,6 @@ import androidx.paging.PagingConfig;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
-import android.content.Intent;
-import android.os.Bundle;
-import android.text.TextUtils;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.firebase.ui.firestore.paging.FirestorePagingOptions;
@@ -33,33 +33,42 @@ import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class ProfileActivity extends AppCompatActivity implements AccountProfileChallengesRecyclerAdapter.OnListItemClick {
 
-    ConstraintLayout noConnectionLayout;
+    private ConstraintLayout noConnectionLayout;
 
-    Toolbar profileToolbar;
-    SwipeRefreshLayout profileSwipeRefreshLayout;
+    private Toolbar profileToolbar;
+    private SwipeRefreshLayout profileSwipeRefreshLayout;
 
-    CircleImageView profileUserImage;
+    private CircleImageView profileUserImage;
 
-    TextView profileChallengesCounter, profileChallengesText, profileFollowersCounter, profileFollowersText, profileLikesCounter, profileLikesText;
+    private TextView profileChallengesCounter, profileChallengesText, profileFollowersCounter, profileFollowersText, profileLikesCounter, profileLikesText;
 
-    TextView profileUserName, profileDescription;
+    private TextView profileUserName, profileDescription;
 
-    RecyclerView profileChallengesRecyclerView;
-    TextView profileNoCompletedChallengesText;
+    private RecyclerView profileChallengesRecyclerView;
+    private TextView profileNoCompletedChallengesText;
 
-    AccountProfileChallengesRecyclerAdapter profileChallengesRecyclerAdapter;
+    private AccountProfileChallengesRecyclerAdapter profileChallengesRecyclerAdapter;
 
-    String userID;
+    private String userID;
 
-    FirebaseFirestore firebaseFirestore;
-    DocumentReference userDocument;
+    private FirebaseFirestore firebaseFirestore;
+    private DocumentReference userDocument;
 
-    EasyNetworkMod easyNetworkMod;
+    private EasyNetworkMod easyNetworkMod;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+
+        initVars();
+        setupToolbar();
+        loadProfile();
+        setOnClicks();
+
+    }
+
+    private void initVars() {
 
         noConnectionLayout = findViewById(R.id.no_connection_layout);
 
@@ -88,17 +97,12 @@ public class ProfileActivity extends AppCompatActivity implements AccountProfile
 
         easyNetworkMod = new EasyNetworkMod(this);
 
+    }
+
+    private void setupToolbar() {
+
         setSupportActionBar(profileToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        loadProfile();
-
-        profileSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                loadProfile();
-            }
-        });
 
     }
 
@@ -142,59 +146,59 @@ public class ProfileActivity extends AppCompatActivity implements AccountProfile
             // Challenges count and text
             userDocument.collection("CompletedChallenges")
                     .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                @Override
-                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        @Override
+                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                    profileChallengesCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
+                            profileChallengesCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
 
-                    if (queryDocumentSnapshots.size() == 1) {
-                        profileChallengesText.setText(getString(R.string.challenge));
-                    } else {
+                            if (queryDocumentSnapshots.size() == 1) {
+                                profileChallengesText.setText(getString(R.string.challenge));
+                            } else {
 
-                        profileChallengesText.setText(getString(R.string.challenges));
+                                profileChallengesText.setText(getString(R.string.challenges));
 
-                        if (queryDocumentSnapshots.isEmpty()) {
-                            profileNoCompletedChallengesText.setVisibility(View.VISIBLE);
+                                if (queryDocumentSnapshots.isEmpty()) {
+                                    profileNoCompletedChallengesText.setVisibility(View.VISIBLE);
+                                }
+
+                            }
+
                         }
-
-                    }
-
-                }
-            });
+                    });
 
             // Followers count and text
             userDocument.collection("Followers")
                     .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                @Override
-                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        @Override
+                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                    profileFollowersCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
+                            profileFollowersCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
 
-                    if (queryDocumentSnapshots.size() == 1) {
-                        profileFollowersText.setText(getString(R.string.follower));
-                    } else {
-                        profileFollowersText.setText(getString(R.string.followers));
-                    }
+                            if (queryDocumentSnapshots.size() == 1) {
+                                profileFollowersText.setText(getString(R.string.follower));
+                            } else {
+                                profileFollowersText.setText(getString(R.string.followers));
+                            }
 
-                }
-            });
+                        }
+                    });
 
             // Likes count and text
             userDocument.collection("Likes")
                     .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                @Override
-                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        @Override
+                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                    profileLikesCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
+                            profileLikesCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
 
-                    if (queryDocumentSnapshots.size() == 1) {
-                        profileLikesText.setText(getString(R.string.like));
-                    } else {
-                        profileLikesText.setText(getString(R.string.likes));
-                    }
+                            if (queryDocumentSnapshots.size() == 1) {
+                                profileLikesText.setText(getString(R.string.like));
+                            } else {
+                                profileLikesText.setText(getString(R.string.likes));
+                            }
 
-                }
-            });
+                        }
+                    });
 
             // Challenges
             Query query = userDocument.collection("CompletedChallenges").orderBy("timestamp", Query.Direction.DESCENDING);
@@ -219,6 +223,17 @@ public class ProfileActivity extends AppCompatActivity implements AccountProfile
         } else {
             noConnectionAvailable();
         }
+
+    }
+
+    private void setOnClicks() {
+
+        profileSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                loadProfile();
+            }
+        });
 
     }
 

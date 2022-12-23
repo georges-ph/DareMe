@@ -19,9 +19,9 @@ import ga.jundbits.dareme.R;
 
 public class NewChallengePlayersRecyclerAdapter extends RecyclerView.Adapter<NewChallengePlayersRecyclerAdapter.NewChallengePlayersViewHolder> {
 
-    List<NewChallengePlayersModel> newChallengePlayersModelList;
-    Context context;
-    ListItemButtonClick listItemButtonClick;
+    private List<NewChallengePlayersModel> newChallengePlayersModelList;
+    private Context context;
+    private ListItemButtonClick listItemButtonClick;
 
     public NewChallengePlayersRecyclerAdapter(Context context, List<NewChallengePlayersModel> newChallengePlayersModelList, ListItemButtonClick listItemButtonClick) {
 

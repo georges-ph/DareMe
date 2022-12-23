@@ -52,34 +52,44 @@ import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class LoginActivity extends AppCompatActivity {
 
-    ConstraintLayout noConnectionLayout;
+    private ConstraintLayout noConnectionLayout;
 
-    ConstraintLayout loginConstraintLayout;
-    Toolbar loginToolbar;
-    EditText loginEmailAddress, loginPassword;
-    ImageButton loginShowPassword;
-    Button loginButton, loginRegisterButton;
+    private ConstraintLayout loginConstraintLayout;
+    private Toolbar loginToolbar;
+    private EditText loginEmailAddress, loginPassword;
+    private ImageButton loginShowPassword;
+    private Button loginButton, loginRegisterButton;
 
-    FirebaseFirestore firebaseFirestore;
-    FirebaseAuth firebaseAuth;
+    private FirebaseFirestore firebaseFirestore;
+    private FirebaseAuth firebaseAuth;
 
-    String userType;
-    String challengeID = "null";
-    String userToken;
+    private String userType;
+    private String challengeID = "null";
+    private String userToken;
 
-    Vibrator vibrator;
+    private Vibrator vibrator;
 
-    ProgressDialog loginProgressDialog;
+    private ProgressDialog loginProgressDialog;
 
-    SharedPreferences loginPreferences;
-    SharedPreferences.Editor editor;
+    private SharedPreferences loginPreferences;
+    private SharedPreferences.Editor editor;
 
-    EasyNetworkMod easyNetworkMod;
+    private EasyNetworkMod easyNetworkMod;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        initVars();
+        setupToolbar();
+        loadInputsData();
+        getUserToken();
+        setOnClicks();
+
+    }
+
+    private void initVars() {
 
         noConnectionLayout = findViewById(R.id.no_connection_layout);
 
@@ -102,16 +112,21 @@ public class LoginActivity extends AppCompatActivity {
 
         easyNetworkMod = new EasyNetworkMod(this);
 
-        setSupportActionBar(loginToolbar);
-        getSupportActionBar().setTitle(getString(R.string.login));
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
         loginShowPassword.setColorFilter(Color.RED);
 
         loginPreferences = getSharedPreferences("Login Preferences", MODE_PRIVATE);
 
-        loadInputsData();
-        getUserToken();
+    }
+
+    private void setupToolbar() {
+
+        setSupportActionBar(loginToolbar);
+        getSupportActionBar().setTitle(getString(R.string.login));
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+    }
+
+    private void setOnClicks() {
 
         loginShowPassword.setOnClickListener(new View.OnClickListener() {
             @Override

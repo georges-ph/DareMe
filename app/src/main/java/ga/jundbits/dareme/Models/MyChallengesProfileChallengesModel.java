@@ -2,8 +2,8 @@ package ga.jundbits.dareme.Models;
 
 public class MyChallengesProfileChallengesModel {
 
-    String image, username, challenges_username;
-    long date_time_millis;
+    private String image, username, challenges_username;
+    private long date_time_millis;
 
     public MyChallengesProfileChallengesModel() {
 

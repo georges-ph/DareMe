@@ -28,38 +28,38 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import de.hdodenhof.circleimageview.CircleImageView;
-import ga.jundbits.dareme.Models.AccountProfileChallengesModel;
-import ga.jundbits.dareme.Adapters.AccountProfileChallengesRecyclerAdapter;
 import ga.jundbits.dareme.Activities.ChallengeActivity;
+import ga.jundbits.dareme.Adapters.AccountProfileChallengesRecyclerAdapter;
+import ga.jundbits.dareme.Models.AccountProfileChallengesModel;
 import ga.jundbits.dareme.R;
 import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class AccountFragment extends Fragment implements AccountProfileChallengesRecyclerAdapter.OnListItemClick {
 
-    NoConnection noConnection;
+    private NoConnection noConnection;
 
-    SwipeRefreshLayout mainAccountSwipeRefreshLayout;
+    private SwipeRefreshLayout mainAccountSwipeRefreshLayout;
 
-    CircleImageView mainAccountUserImage;
+    private CircleImageView mainAccountUserImage;
 
-    TextView mainAccountChallengesCounter, mainAccountChallengesText, mainAccountFollowersCounter, mainAccountFollowersText, mainAccountLikesCounter, mainAccountLikesText;
+    private TextView mainAccountChallengesCounter, mainAccountChallengesText, mainAccountFollowersCounter, mainAccountFollowersText, mainAccountLikesCounter, mainAccountLikesText;
 
-    TextView mainAccountUserName, mainAccountDescription;
+    private TextView mainAccountUserName, mainAccountDescription;
 
-    RecyclerView mainAccountChallengesRecyclerView;
-    TextView mainAccountNoCompletedChallengesText;
+    private RecyclerView mainAccountChallengesRecyclerView;
+    private TextView mainAccountNoCompletedChallengesText;
 
-    AccountProfileChallengesRecyclerAdapter accountProfileChallengesRecyclerAdapter;
+    private AccountProfileChallengesRecyclerAdapter accountProfileChallengesRecyclerAdapter;
 
-    FirebaseFirestore firebaseFirestore;
-    FirebaseAuth firebaseAuth;
-    FirebaseUser firebaseUser;
+    private FirebaseFirestore firebaseFirestore;
+    private FirebaseAuth firebaseAuth;
+    private FirebaseUser firebaseUser;
 
-    String currentUserID;
+    private String currentUserID;
 
-    DocumentReference currentUserDocument;
+    private DocumentReference currentUserDocument;
 
-    EasyNetworkMod easyNetworkMod;
+    private EasyNetworkMod easyNetworkMod;
 
     public AccountFragment() {
 
@@ -73,6 +73,14 @@ public class AccountFragment extends Fragment implements AccountProfileChallenge
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        initVars(view);
+        loadAccount();
+        setOnClicks();
+
+    }
+
+    private void initVars(View view) {
 
         mainAccountSwipeRefreshLayout = view.findViewById(R.id.main_account_swipe_refresh_layout);
 
@@ -100,15 +108,6 @@ public class AccountFragment extends Fragment implements AccountProfileChallenge
         currentUserDocument = firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Users").document(currentUserID);
 
         easyNetworkMod = new EasyNetworkMod(getContext());
-
-        loadAccount();
-
-        mainAccountSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                loadAccount();
-            }
-        });
 
     }
 
@@ -232,6 +231,17 @@ public class AccountFragment extends Fragment implements AccountProfileChallenge
             noConnection.noConnection();
 
         }
+
+    }
+
+    private void setOnClicks() {
+
+        mainAccountSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                loadAccount();
+            }
+        });
 
     }
 

@@ -1,14 +1,5 @@
 package ga.jundbits.dareme.Activities;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -25,6 +16,15 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -47,63 +47,73 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import ga.jundbits.dareme.Models.ChallengeCommentsBottomSheetModel;
 import ga.jundbits.dareme.Adapters.ChallengeCommentsBottomSheetRecyclerAdapter;
 import ga.jundbits.dareme.Fragments.AccountFragment;
 import ga.jundbits.dareme.Fragments.HomeFragment;
 import ga.jundbits.dareme.Fragments.MyChallengesFragment;
+import ga.jundbits.dareme.Models.ChallengeCommentsBottomSheetModel;
 import ga.jundbits.dareme.R;
 import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class MainActivity extends AppCompatActivity implements HomeFragment.OpenCommentsBox, HomeFragment.NoConnection, MyChallengesFragment.NoConnection, AccountFragment.NoConnection {
 
-    String userType;
-    String challengeID;
+    private String userType;
+    private String challengeID;
 
-    ConstraintLayout noConnectionLayout;
+    private ConstraintLayout noConnectionLayout;
 
-    Toolbar mainToolbar;
-    BottomNavigationView mainBottomNavigationView;
+    private Toolbar mainToolbar;
+    private BottomNavigationView mainBottomNavigationView;
 
-    ConstraintLayout mainBannerLayout;
-    TextView mainBannerMessage;
-    ImageButton mainBannerCloseButton;
+    private ConstraintLayout mainBannerLayout;
+    private TextView mainBannerMessage;
+    private ImageButton mainBannerCloseButton;
 
-    ConstraintLayout commentsBottomSheetConstraintLayout;
-    BottomSheetBehavior commentsBottomSheetBehavior;
-    ImageButton commentsBottomSheetCloseButton;
-    RecyclerView commentsRecyclerView;
-    EditText commentsBottomSheetCommentEditText;
-    ImageButton commentsBottomSheetCommentPostButton;
+    private ConstraintLayout commentsBottomSheetConstraintLayout;
+    private BottomSheetBehavior commentsBottomSheetBehavior;
+    private ImageButton commentsBottomSheetCloseButton;
+    private RecyclerView commentsRecyclerView;
+    private EditText commentsBottomSheetCommentEditText;
+    private ImageButton commentsBottomSheetCommentPostButton;
 
-    ChallengeCommentsBottomSheetRecyclerAdapter challengeCommentsBottomSheetRecyclerAdapter;
+    private ChallengeCommentsBottomSheetRecyclerAdapter challengeCommentsBottomSheetRecyclerAdapter;
 
-    boolean scrollToBottom = false;
+    private boolean scrollToBottom = false;
 
-    HomeFragment homeFragment;
-    MyChallengesFragment myChallengesFragment;
-    AccountFragment accountFragment;
-    FragmentManager fragmentManager;
-    Fragment activeFragment;
+    private HomeFragment homeFragment;
+    private MyChallengesFragment myChallengesFragment;
+    private AccountFragment accountFragment;
+    private FragmentManager fragmentManager;
+    private Fragment activeFragment;
 
-    FirebaseFirestore firebaseFirestore;
-    FirebaseAuth firebaseAuth;
-    FirebaseUser firebaseUser;
-    FirebaseDynamicLinks firebaseDynamicLinks;
+    private FirebaseFirestore firebaseFirestore;
+    private FirebaseAuth firebaseAuth;
+    private FirebaseUser firebaseUser;
+    private FirebaseDynamicLinks firebaseDynamicLinks;
 
-    String currentUserID;
-    String currentUserUsername;
+    private String currentUserID;
+    private String currentUserUsername;
 
-    DocumentReference currentUserDocument;
+    private DocumentReference currentUserDocument;
 
-    EasyNetworkMod easyNetworkMod;
+    private EasyNetworkMod easyNetworkMod;
 
-    boolean doubleBackToExit = false;
+    private boolean doubleBackToExit = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        initVars();
+        setupToolbar();
+        setupFragments();
+        loadData();
+        setOnClicks();
+
+    }
+
+    private void initVars() {
 
         userType = getIntent().getExtras().getString("user_type");
         challengeID = getIntent().getExtras().getString("challenge_id");
@@ -140,14 +150,26 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
 
         easyNetworkMod = new EasyNetworkMod(this);
 
+    }
+
+    private void setupToolbar() {
+
         setSupportActionBar(mainToolbar);
         getSupportActionBar().setTitle(getString(R.string.app_name));
 
-        getUserUsername(currentUserDocument);
+    }
+
+    private void setupFragments() {
 
         fragmentManager.beginTransaction().add(R.id.main_fragment_container, accountFragment, "account").hide(accountFragment).commit();
         fragmentManager.beginTransaction().add(R.id.main_fragment_container, myChallengesFragment, "my challenges").hide(myChallengesFragment).commit();
         fragmentManager.beginTransaction().add(R.id.main_fragment_container, homeFragment, "home").commit();
+
+    }
+
+    private void loadData() {
+
+        getUserUsername(currentUserDocument);
 
         currentUserDocument.addSnapshotListener(MainActivity.this, new EventListener<DocumentSnapshot>() {
             @Override
@@ -170,6 +192,18 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
 
             }
         });
+
+        if (!challengeID.equals("null")) {
+
+            Intent challengeIntent = new Intent(MainActivity.this, ChallengeActivity.class);
+            challengeIntent.putExtra("challenge_id", challengeID);
+            startActivity(challengeIntent);
+
+        }
+
+    }
+
+    private void setOnClicks() {
 
         mainBottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -203,88 +237,10 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
             }
         });
 
-        if (!challengeID.equals("null")) {
-
-            Intent challengeIntent = new Intent(MainActivity.this, ChallengeActivity.class);
-            challengeIntent.putExtra("challenge_id", challengeID);
-            startActivity(challengeIntent);
-
-        }
-
-    }
-
-    @Override
-    public void onCommentClicked(final String challengeID) {
-
-        Query query = firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Challenges").document(challengeID).collection("Comments").orderBy("timestamp", Query.Direction.DESCENDING);
-
-        FirestoreRecyclerOptions<ChallengeCommentsBottomSheetModel> options = new FirestoreRecyclerOptions.Builder<ChallengeCommentsBottomSheetModel>()
-                .setLifecycleOwner(this)
-                .setQuery(query, ChallengeCommentsBottomSheetModel.class)
-                .build();
-
-        challengeCommentsBottomSheetRecyclerAdapter = new ChallengeCommentsBottomSheetRecyclerAdapter(options, this);
-// TODO: erja3 red l comments mtl abel bas aaml shaghle eno badel ma a3ml convert lal timestamp
-//  when retrieving a3mela when posting aw abel b shwe w hek
-        commentsRecyclerView.setHasFixedSize(true);
-        commentsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        commentsRecyclerView.setAdapter(challengeCommentsBottomSheetRecyclerAdapter);
-
-        commentsBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-
-        commentsBottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
-            @Override
-            public void onStateChanged(@NonNull View bottomSheet, int newState) {
-
-                if (newState == BottomSheetBehavior.STATE_DRAGGING || newState == BottomSheetBehavior.STATE_COLLAPSED) {
-
-                    closeKeyboard();
-
-                } else if (newState == BottomSheetBehavior.STATE_EXPANDED) {
-
-                    if (!commentsBottomSheetCommentEditText.getText().toString().isEmpty()) {
-                        commentsBottomSheetCommentPostButton.setEnabled(true);
-                    }
-
-                }
-
-            }
-
-            @Override
-            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-
-            }
-        });
-
         commentsBottomSheetCloseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 commentsBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-            }
-        });
-
-        commentsBottomSheetCommentPostButton.setEnabled(false);
-
-        commentsBottomSheetCommentEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-                if (s.toString().isEmpty()) {
-                    commentsBottomSheetCommentPostButton.setEnabled(false);
-                } else {
-                    commentsBottomSheetCommentPostButton.setEnabled(true);
-                }
-
             }
         });
 
@@ -343,6 +299,76 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
 
                 } else {
                     noConnection();
+                }
+
+            }
+        });
+
+    }
+
+    @Override
+    public void onCommentClicked(final String challengeID) {
+
+        Query query = firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Challenges").document(challengeID).collection("Comments").orderBy("timestamp", Query.Direction.DESCENDING);
+
+        FirestoreRecyclerOptions<ChallengeCommentsBottomSheetModel> options = new FirestoreRecyclerOptions.Builder<ChallengeCommentsBottomSheetModel>()
+                .setLifecycleOwner(this)
+                .setQuery(query, ChallengeCommentsBottomSheetModel.class)
+                .build();
+
+        challengeCommentsBottomSheetRecyclerAdapter = new ChallengeCommentsBottomSheetRecyclerAdapter(options, this);
+// TODO: erja3 red l comments mtl abel bas aaml shaghle eno badel ma a3ml convert lal timestamp
+//  when retrieving a3mela when posting aw abel b shwe w hek
+        commentsRecyclerView.setHasFixedSize(true);
+        commentsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        commentsRecyclerView.setAdapter(challengeCommentsBottomSheetRecyclerAdapter);
+
+        commentsBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+
+        commentsBottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+
+                if (newState == BottomSheetBehavior.STATE_DRAGGING || newState == BottomSheetBehavior.STATE_COLLAPSED) {
+
+                    closeKeyboard();
+
+                } else if (newState == BottomSheetBehavior.STATE_EXPANDED) {
+
+                    if (!commentsBottomSheetCommentEditText.getText().toString().isEmpty()) {
+                        commentsBottomSheetCommentPostButton.setEnabled(true);
+                    }
+
+                }
+
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+
+            }
+        });
+
+        commentsBottomSheetCommentPostButton.setEnabled(false);
+
+        commentsBottomSheetCommentEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+                if (s.toString().isEmpty()) {
+                    commentsBottomSheetCommentPostButton.setEnabled(false);
+                } else {
+                    commentsBottomSheetCommentPostButton.setEnabled(true);
                 }
 
             }

@@ -42,16 +42,16 @@ import ga.jundbits.dareme.Utils.TimeAgo;
 
 public class MainHomeChallengesRecyclerAdapter extends FirestorePagingAdapter<MainHomeChallengesModel, MainHomeChallengesRecyclerAdapter.MainHomeChallengesViewHolder> {
 
-    Context context;
-    ListItemButtonClick listItemButtonClick;
+    private Context context;
+    private ListItemButtonClick listItemButtonClick;
 
-    TimeAgo timeAgo;
+    private TimeAgo timeAgo;
 
-    FirebaseFirestore firebaseFirestore;
-    FirebaseAuth firebaseAuth;
-    FirebaseUser firebaseUser;
-    String currentUserID;
-    DocumentReference currentUserDocument;
+    private FirebaseFirestore firebaseFirestore;
+    private FirebaseAuth firebaseAuth;
+    private FirebaseUser firebaseUser;
+    private String currentUserID;
+    private DocumentReference currentUserDocument;
 
     public MainHomeChallengesRecyclerAdapter(@NonNull FirestorePagingOptions<MainHomeChallengesModel> options, Context context, ListItemButtonClick listItemButtonClick) {
         super(options);
@@ -175,97 +175,97 @@ public class MainHomeChallengesRecyclerAdapter extends FirestorePagingAdapter<Ma
                         .collection("Challenges").document(getItem(holder.getAdapterPosition()).getId())
                         .collection("Likes").document(currentUserID)
                         .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                            @Override
+                            public void onSuccess(DocumentSnapshot documentSnapshot) {
 
-                        if (documentSnapshot.exists()) {
+                                if (documentSnapshot.exists()) {
 
-                            holder.likeButton.setImageResource(R.drawable.ic_like_grey_32dp);
+                                    holder.likeButton.setImageResource(R.drawable.ic_like_grey_32dp);
 
-                            firebaseFirestore.collection(context.getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                    .collection("Challenges").document(getItem(holder.getAdapterPosition()).getId())
-                                    .collection("Likes").document(currentUserID)
-                                    .delete();
+                                    firebaseFirestore.collection(context.getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                            .collection("Challenges").document(getItem(holder.getAdapterPosition()).getId())
+                                            .collection("Likes").document(currentUserID)
+                                            .delete();
 
-                        } else {
+                                } else {
 
-                            holder.likeButton.setImageResource(R.drawable.ic_like_red_32dp);
+                                    holder.likeButton.setImageResource(R.drawable.ic_like_red_32dp);
 
-                            Map<String, Object> likeMap = new HashMap<>();
-                            likeMap.put("user_id", currentUserID);
-                            likeMap.put("timestamp", FieldValue.serverTimestamp());
+                                    Map<String, Object> likeMap = new HashMap<>();
+                                    likeMap.put("user_id", currentUserID);
+                                    likeMap.put("timestamp", FieldValue.serverTimestamp());
 
-                            firebaseFirestore.collection(context.getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                    .collection("Challenges").document(getItem(holder.getAdapterPosition()).getId())
-                                    .collection("Likes").document(currentUserID)
-                                    .set(likeMap);
+                                    firebaseFirestore.collection(context.getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                            .collection("Challenges").document(getItem(holder.getAdapterPosition()).getId())
+                                            .collection("Likes").document(currentUserID)
+                                            .set(likeMap);
 
-                        }
+                                }
 
-                    }
-                });
+                            }
+                        });
 
                 // Add to watcher document
                 firebaseFirestore.collection(context.getString(R.string.app_name_no_spaces)).document("AppCollections")
                         .collection("Users").document(watcherUserID)
                         .collection("Likes").document(currentUserID)
                         .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                            @Override
+                            public void onSuccess(DocumentSnapshot documentSnapshot) {
 
-                        if (documentSnapshot.exists()) {
+                                if (documentSnapshot.exists()) {
 
-                            firebaseFirestore.collection(context.getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                    .collection("Users").document(watcherUserID)
-                                    .collection("Likes").document(currentUserID)
-                                    .delete();
+                                    firebaseFirestore.collection(context.getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                            .collection("Users").document(watcherUserID)
+                                            .collection("Likes").document(currentUserID)
+                                            .delete();
 
-                        } else {
+                                } else {
 
-                            Map<String, Object> likeMap = new HashMap<>();
-                            likeMap.put("user_id", currentUserID);
-                            likeMap.put("timestamp", FieldValue.serverTimestamp());
+                                    Map<String, Object> likeMap = new HashMap<>();
+                                    likeMap.put("user_id", currentUserID);
+                                    likeMap.put("timestamp", FieldValue.serverTimestamp());
 
-                            firebaseFirestore.collection(context.getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                    .collection("Users").document(watcherUserID)
-                                    .collection("Likes").document(currentUserID)
-                                    .set(likeMap);
+                                    firebaseFirestore.collection(context.getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                            .collection("Users").document(watcherUserID)
+                                            .collection("Likes").document(currentUserID)
+                                            .set(likeMap);
 
-                        }
+                                }
 
-                    }
-                });
+                            }
+                        });
 
                 // Add to player document
                 firebaseFirestore.collection(context.getString(R.string.app_name_no_spaces)).document("AppCollections")
                         .collection("Users").document(playerUserID)
                         .collection("Likes").document(currentUserID)
                         .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                            @Override
+                            public void onSuccess(DocumentSnapshot documentSnapshot) {
 
-                        if (documentSnapshot.exists()) {
+                                if (documentSnapshot.exists()) {
 
-                            firebaseFirestore.collection(context.getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                    .collection("Users").document(playerUserID)
-                                    .collection("Likes").document(currentUserID)
-                                    .delete();
+                                    firebaseFirestore.collection(context.getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                            .collection("Users").document(playerUserID)
+                                            .collection("Likes").document(currentUserID)
+                                            .delete();
 
-                        } else {
+                                } else {
 
-                            Map<String, Object> likeMap = new HashMap<>();
-                            likeMap.put("user_id", currentUserID);
-                            likeMap.put("timestamp", FieldValue.serverTimestamp());
+                                    Map<String, Object> likeMap = new HashMap<>();
+                                    likeMap.put("user_id", currentUserID);
+                                    likeMap.put("timestamp", FieldValue.serverTimestamp());
 
-                            firebaseFirestore.collection(context.getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                    .collection("Users").document(playerUserID)
-                                    .collection("Likes").document(currentUserID)
-                                    .set(likeMap);
+                                    firebaseFirestore.collection(context.getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                            .collection("Users").document(playerUserID)
+                                            .collection("Likes").document(currentUserID)
+                                            .set(likeMap);
 
-                        }
+                                }
 
-                    }
-                });
+                            }
+                        });
 
             }
         });
@@ -295,31 +295,31 @@ public class MainHomeChallengesRecyclerAdapter extends FirestorePagingAdapter<Ma
                 firebaseFirestore.collection(context.getString(R.string.app_name_no_spaces)).document("AppCollections")
                         .collection("Users").whereEqualTo("username", challengesUsername)
                         .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                            @Override
+                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                        if (!queryDocumentSnapshots.isEmpty()) {
+                                if (!queryDocumentSnapshots.isEmpty()) {
 
-                            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
+                                    for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
 
-                                firebaseFirestore.collection(context.getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                        .collection("Users").document(documentSnapshot.getId())
-                                        .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                    @Override
-                                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                                        firebaseFirestore.collection(context.getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                                .collection("Users").document(documentSnapshot.getId())
+                                                .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                                                    @Override
+                                                    public void onSuccess(DocumentSnapshot documentSnapshot) {
 
-                                        String userID = documentSnapshot.getString("id");
-                                        holder.openProfile(userID);
+                                                        String userID = documentSnapshot.getString("id");
+                                                        holder.openProfile(userID);
+
+                                                    }
+                                                });
 
                                     }
-                                });
+
+                                }
 
                             }
-
-                        }
-
-                    }
-                });
+                        });
 
             }
         });

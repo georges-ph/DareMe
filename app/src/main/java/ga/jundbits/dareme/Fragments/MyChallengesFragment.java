@@ -2,6 +2,10 @@ package ga.jundbits.dareme.Fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -10,11 +14,6 @@ import androidx.paging.PagingConfig;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.firebase.ui.firestore.paging.FirestorePagingOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -34,25 +33,25 @@ import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class MyChallengesFragment extends Fragment implements MyChallengesProfileChallengesRecyclerAdapter.ListItemButtonClick {
 
-    NoConnection noConnection;
+    private NoConnection noConnection;
 
-    SwipeRefreshLayout myChallengesSwipeRefreshLayout;
-    TextView myChallengesYouChallengedText;
-    RecyclerView myChallengesChallengesRecyclerView;
-    FloatingActionButton myChallengesFAB;
+    private SwipeRefreshLayout myChallengesSwipeRefreshLayout;
+    private TextView myChallengesYouChallengedText;
+    private RecyclerView myChallengesChallengesRecyclerView;
+    private FloatingActionButton myChallengesFAB;
 
-    MyChallengesProfileChallengesRecyclerAdapter myChallengesProfileChallengesRecyclerAdapter;
+    private MyChallengesProfileChallengesRecyclerAdapter myChallengesProfileChallengesRecyclerAdapter;
 
-    FirebaseFirestore firebaseFirestore;
-    FirebaseAuth firebaseAuth;
-    FirebaseUser firebaseUser;
+    private FirebaseFirestore firebaseFirestore;
+    private FirebaseAuth firebaseAuth;
+    private FirebaseUser firebaseUser;
 
-    String currentUserID;
-    String currentUserType;
+    private String currentUserID;
+    private String currentUserType;
 
-    DocumentReference currentUserDocument;
+    private DocumentReference currentUserDocument;
 
-    EasyNetworkMod easyNetworkMod;
+    private EasyNetworkMod easyNetworkMod;
 
     public MyChallengesFragment() {
 
@@ -66,6 +65,14 @@ public class MyChallengesFragment extends Fragment implements MyChallengesProfil
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        initVars(view);
+        loadMyChallenges();
+        setOnClicks();
+
+    }
+
+    private void initVars(View view) {
 
         myChallengesSwipeRefreshLayout = view.findViewById(R.id.main_my_challenges_swipe_refresh_layout);
         myChallengesYouChallengedText = view.findViewById(R.id.main_my_challenges_you_challenged_text);
@@ -83,34 +90,15 @@ public class MyChallengesFragment extends Fragment implements MyChallengesProfil
 
         easyNetworkMod = new EasyNetworkMod(getContext());
 
-        loadMyChallenges();
+    }
+
+    private void loadMyChallenges() {
 
         if (currentUserType.equals("player")) {
             myChallengesFAB.setVisibility(View.GONE);
         } else if (currentUserType.equals("watcher")) {
             myChallengesFAB.setVisibility(View.VISIBLE);
         }
-
-        myChallengesSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                loadMyChallenges();
-            }
-        });
-
-        myChallengesFAB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Intent newChallengeIntent = new Intent(getContext(), NewChallengeActivity.class);
-                getContext().startActivity(newChallengeIntent);
-
-            }
-        });
-
-    }
-
-    private void loadMyChallenges() {
 
         Query query = null;
 
@@ -173,6 +161,27 @@ public class MyChallengesFragment extends Fragment implements MyChallengesProfil
             noConnection.noConnection();
 
         }
+
+    }
+
+    private void setOnClicks() {
+
+        myChallengesSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                loadMyChallenges();
+            }
+        });
+
+        myChallengesFAB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent newChallengeIntent = new Intent(getContext(), NewChallengeActivity.class);
+                getContext().startActivity(newChallengeIntent);
+
+            }
+        });
 
     }
 

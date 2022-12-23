@@ -42,31 +42,31 @@ import github.nisrulz.easydeviceinfo.base.NetworkType;
 public class SplashActivity extends AppCompatActivity {
 
     // TODO: 17-Dec-22 https://developer.android.com/develop/ui/views/launch/splash-screen/migrate 
-    
+
     ConstraintLayout noConnectionLayout;
 
-    ConstraintLayout splashUpdateLayout;
-    Button splashUpdateButton;
+    private ConstraintLayout splashUpdateLayout;
+    private Button splashUpdateButton;
 
-    FirebaseFirestore firebaseFirestore;
-    FirebaseAuth firebaseAuth;
-    FirebaseUser firebaseUser;
-    FirebaseDynamicLinks firebaseDynamicLinks;
-    FirebaseStorage firebaseStorage;
+    private FirebaseFirestore firebaseFirestore;
+    private FirebaseAuth firebaseAuth;
+    private FirebaseUser firebaseUser;
+    private FirebaseDynamicLinks firebaseDynamicLinks;
+    private FirebaseStorage firebaseStorage;
 
-    String currentUserID;
+    private String currentUserID;
 
-    DocumentReference currentUserDocument;
+    private DocumentReference currentUserDocument;
 
-    EasyNetworkMod easyNetworkMod;
-    EasyAppMod easyAppMod;
+    private EasyNetworkMod easyNetworkMod;
+    private EasyAppMod easyAppMod;
 
-    String deviceID;
-    String challengeID = "null";
-    String userToken;
+    private String deviceID;
+    private String challengeID = "null";
+    private String userToken;
 
-    SharedPreferences networkPreferences;
-    SharedPreferences.Editor editor;
+    private SharedPreferences networkPreferences;
+    private SharedPreferences.Editor editor;
 
     public static final String updateFromURL = "https://bit.ly/3cu9i1t";
 
@@ -74,6 +74,12 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+
+        initVars();
+
+    }
+
+    private void initVars() {
 
         noConnectionLayout = findViewById(R.id.no_connection_layout);
 
@@ -99,7 +105,7 @@ public class SplashActivity extends AppCompatActivity {
         deviceMap.put("device_id", deviceID);
         deviceMap.put("denied", false);
         Log
-                .d("msggg","id: "+deviceID);
+                .d("msggg", "id: " + deviceID);
 
         firebaseFirestore.collection("Devices").document(deviceID)
                 .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
@@ -146,7 +152,7 @@ public class SplashActivity extends AppCompatActivity {
                         @Override
                         public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
 
-                            if (documentSnapshot!=null&& documentSnapshot.exists()) {
+                            if (documentSnapshot != null && documentSnapshot.exists()) {
 
                                 boolean denied = documentSnapshot.getBoolean("denied");
 

@@ -1,13 +1,5 @@
 package ga.jundbits.dareme.Activities;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -22,6 +14,14 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -47,47 +47,58 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import ga.jundbits.dareme.Models.NewChallengePlayersModel;
 import ga.jundbits.dareme.Adapters.NewChallengePlayersRecyclerAdapter;
+import ga.jundbits.dareme.Models.NewChallengePlayersModel;
 import ga.jundbits.dareme.R;
 import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class NewChallengeActivity extends AppCompatActivity implements NewChallengePlayersRecyclerAdapter.ListItemButtonClick /* implements NewChallengePlayersRecyclerAdapter.ListItemButtonClick */ {
 
-    ConstraintLayout noConnectionLayout;
+    private ConstraintLayout noConnectionLayout;
 
-    ConstraintLayout newChallengeConstraintLayout;
-    Toolbar newChallengeToolbar;
-    EditText newChallengePlayerUsername, newChallengeDescription, newChallengePrize;
-    RecyclerView newChallengePlayersRecyclerView;
-    Button newChallengeAddChallengeButton;
+    private ConstraintLayout newChallengeConstraintLayout;
+    private Toolbar newChallengeToolbar;
+    private EditText newChallengePlayerUsername, newChallengeDescription, newChallengePrize;
+    private RecyclerView newChallengePlayersRecyclerView;
+    private Button newChallengeAddChallengeButton;
 
-    List<NewChallengePlayersModel> newChallengePlayersModelList;
-    NewChallengePlayersRecyclerAdapter newChallengePlayersRecyclerAdapter;
+    private List<NewChallengePlayersModel> newChallengePlayersModelList;
+    private NewChallengePlayersRecyclerAdapter newChallengePlayersRecyclerAdapter;
 
-    FirebaseFirestore firebaseFirestore;
-    FirebaseAuth firebaseAuth;
-    FirebaseUser firebaseUser;
+    private FirebaseFirestore firebaseFirestore;
+    private FirebaseAuth firebaseAuth;
+    private FirebaseUser firebaseUser;
 
-    String currentUserID;
-    String currentUserImage;
-    String currentUserUsername;
-    String playerUserID;
+    private String currentUserID;
+    private String currentUserImage;
+    private String currentUserUsername;
+    private String playerUserID;
 
-    DocumentReference currentUserDocument;
+    private DocumentReference currentUserDocument;
 
-    boolean playerUsernameAvailable = false;
+    private boolean playerUsernameAvailable = false;
 
-    Vibrator vibrator;
+    private Vibrator vibrator;
 
-    ProgressDialog progressDialog;
+    private ProgressDialog progressDialog;
 
-    EasyNetworkMod easyNetworkMod;
+    private EasyNetworkMod easyNetworkMod;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_challenge);
+
+        initVars();
+        setupToolbar();
+        loadData();
+        setupAdapter();
+        loadPlayers();
+        setOnClicks();
+
+    }
+
+    private void initVars() {
 
         noConnectionLayout = findViewById(R.id.no_connection_layout);
 
@@ -113,22 +124,22 @@ public class NewChallengeActivity extends AppCompatActivity implements NewChalle
 
         easyNetworkMod = new EasyNetworkMod(this);
 
+        newChallengePlayersModelList = new ArrayList<>();
+
+    }
+
+    private void setupToolbar() {
+
         setSupportActionBar(newChallengeToolbar);
         getSupportActionBar().setTitle(getString(R.string.new_challenge));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+    }
+
+    private void loadData() {
+
         getCurrentUserImage(currentUserDocument);
         getCurrentUserUsername(currentUserDocument);
-
-        newChallengePlayersModelList = new ArrayList<>();
-
-        newChallengePlayersRecyclerAdapter = new NewChallengePlayersRecyclerAdapter(this, newChallengePlayersModelList, this);
-
-        newChallengePlayersRecyclerView.setHasFixedSize(true);
-        newChallengePlayersRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        newChallengePlayersRecyclerView.setAdapter(newChallengePlayersRecyclerAdapter);
-
-        loadPlayers();
 
         newChallengePlayerUsername.addTextChangedListener(new TextWatcher() {
             @Override
@@ -155,6 +166,20 @@ public class NewChallengeActivity extends AppCompatActivity implements NewChalle
 
             }
         });
+
+    }
+
+    private void setupAdapter() {
+
+        newChallengePlayersRecyclerAdapter = new NewChallengePlayersRecyclerAdapter(this, newChallengePlayersModelList, this);
+
+        newChallengePlayersRecyclerView.setHasFixedSize(true);
+        newChallengePlayersRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        newChallengePlayersRecyclerView.setAdapter(newChallengePlayersRecyclerAdapter);
+
+    }
+
+    private void setOnClicks() {
 
         newChallengeAddChallengeButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -363,18 +388,18 @@ public class NewChallengeActivity extends AppCompatActivity implements NewChalle
 
         firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Users").whereEqualTo("username", username)
                 .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                if (queryDocumentSnapshots.isEmpty()) {
-                    playerUsernameAvailable = false;
-                } else {
-                    playerUsernameAvailable = true;
-                    getPlayerUserID(username);
-                }
+                        if (queryDocumentSnapshots.isEmpty()) {
+                            playerUsernameAvailable = false;
+                        } else {
+                            playerUsernameAvailable = true;
+                            getPlayerUserID(username);
+                        }
 
-            }
-        });
+                    }
+                });
 
         return playerUsernameAvailable;
 
@@ -414,21 +439,21 @@ public class NewChallengeActivity extends AppCompatActivity implements NewChalle
 
         firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Users").whereEqualTo("username", playerUsername)
                 .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                if (!queryDocumentSnapshots.isEmpty()) {
+                        if (!queryDocumentSnapshots.isEmpty()) {
 
-                    for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
+                            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
 
-                        playerUserID = documentSnapshot.getString("id");
+                                playerUserID = documentSnapshot.getString("id");
+
+                            }
+
+                        }
 
                     }
-
-                }
-
-            }
-        });
+                });
 
         return currentUserUsername;
 

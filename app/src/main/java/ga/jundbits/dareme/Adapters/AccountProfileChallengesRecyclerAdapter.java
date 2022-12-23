@@ -18,8 +18,8 @@ import ga.jundbits.dareme.R;
 
 public class AccountProfileChallengesRecyclerAdapter extends FirestorePagingAdapter<AccountProfileChallengesModel, AccountProfileChallengesRecyclerAdapter.ProfileChallengesViewHolder> {
 
-    OnListItemClick onListItemClick;
-    Context context;
+    private OnListItemClick onListItemClick;
+    private Context context;
 
     public AccountProfileChallengesRecyclerAdapter(@NonNull FirestorePagingOptions<AccountProfileChallengesModel> options, OnListItemClick onListItemClick, Context context) {
         super(options);

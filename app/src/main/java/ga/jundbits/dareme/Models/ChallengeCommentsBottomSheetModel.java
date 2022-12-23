@@ -2,8 +2,8 @@ package ga.jundbits.dareme.Models;
 
 public class ChallengeCommentsBottomSheetModel {
 
-    String user_id, image, username, comment;
-    long date_time_millis;
+    private String user_id, image, username, comment;
+    private long date_time_millis;
 
     public ChallengeCommentsBottomSheetModel() {
 

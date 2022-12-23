@@ -63,46 +63,55 @@ import io.github.muddz.quickshot.QuickShot;
 
 public class ChallengeAcceptedActivity extends AppCompatActivity {
 
-    ConstraintLayout noConnectionLayout;
+    private ConstraintLayout noConnectionLayout;
 
-    Toolbar challengeAcceptedToolbar;
-    ConstraintLayout challengeAcceptedChallengeTextLayout;
-    TextView challengeAcceptedChallengeText;
-    VideoView challengeAcceptedVideoView;
-    Button challengeAcceptedUploadButton;
+    private Toolbar challengeAcceptedToolbar;
+    private ConstraintLayout challengeAcceptedChallengeTextLayout;
+    private TextView challengeAcceptedChallengeText;
+    private VideoView challengeAcceptedVideoView;
+    private Button challengeAcceptedUploadButton;
 
-    String challengeID;
+    private String challengeID;
 
-    FirebaseFirestore firebaseFirestore;
-    FirebaseAuth firebaseAuth;
-    FirebaseUser firebaseUser;
-    FirebaseStorage firebaseStorage;
+    private FirebaseFirestore firebaseFirestore;
+    private FirebaseAuth firebaseAuth;
+    private FirebaseUser firebaseUser;
+    private FirebaseStorage firebaseStorage;
 
-    String currentUserID;
+    private String currentUserID;
 
-    DocumentReference currentUserDocument;
-    DocumentReference challengeDocument;
-    StorageReference challengeStorageReference;
-    StorageReference challengeStorageThumbnailReference;
+    private DocumentReference currentUserDocument;
+    private DocumentReference challengeDocument;
+    private StorageReference challengeStorageReference;
+    private StorageReference challengeStorageThumbnailReference;
 
-    boolean clickedFirstTime = false;
-    boolean gotVideoThumbnail = false;
+    private boolean clickedFirstTime = false;
+    private boolean gotVideoThumbnail = false;
 
     public static final int VIDEO_REQUEST_CODE = 1;
     public static final int PERMISSION_SETTINGS_REQUEST_CODE = 2;
 
-    ProgressDialog progressDialog;
+    private ProgressDialog progressDialog;
 
-    EasyNetworkMod easyNetworkMod;
+    private EasyNetworkMod easyNetworkMod;
 
-    String thumbnailFileName;
+    private String thumbnailFileName;
 
-    File appStorageDirectory, thumbnailStorageDirectory;
+    private File appStorageDirectory, thumbnailStorageDirectory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_challenge_accepted);
+
+        initVars();
+        setupToolbar();
+        loadData();
+        setOnClicks();
+
+    }
+
+    private void initVars() {
 
         noConnectionLayout = findViewById(R.id.no_connection_layout);
 
@@ -133,9 +142,17 @@ public class ChallengeAcceptedActivity extends AppCompatActivity {
         appStorageDirectory = new File(Environment.getExternalStorageDirectory() + "/" + getString(R.string.app_name));
         thumbnailStorageDirectory = new File(appStorageDirectory + "/Thumbnails");
 
+    }
+
+    private void setupToolbar() {
+
         setSupportActionBar(challengeAcceptedToolbar);
         getSupportActionBar().setTitle(getString(R.string.challenge_accepted));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+    }
+
+    private void loadData() {
 
         challengeDocument.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
@@ -149,6 +166,10 @@ public class ChallengeAcceptedActivity extends AppCompatActivity {
 
             }
         });
+
+    }
+
+    private void setOnClicks() {
 
         challengeAcceptedUploadButton.setOnClickListener(new View.OnClickListener() {
             @Override

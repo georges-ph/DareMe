@@ -26,14 +26,14 @@ import ga.jundbits.dareme.Utils.TimeAgo;
 
 public class ChallengeCommentsBottomSheetRecyclerAdapter extends FirestoreRecyclerAdapter<ChallengeCommentsBottomSheetModel, ChallengeCommentsBottomSheetRecyclerAdapter.ChallengeCommentsBottomSheetViewHolder> {
 
-    Context context;
-    TimeAgo timeAgo;
+    private Context context;
+    private TimeAgo timeAgo;
 
-    FirebaseFirestore firebaseFirestore;
-    FirebaseAuth firebaseAuth;
-    FirebaseUser firebaseUser;
-    String currentUserID;
-    DocumentReference currentUserDocument;
+    private FirebaseFirestore firebaseFirestore;
+    private FirebaseAuth firebaseAuth;
+    private FirebaseUser firebaseUser;
+    private String currentUserID;
+    private DocumentReference currentUserDocument;
 
     public ChallengeCommentsBottomSheetRecyclerAdapter(@NonNull FirestoreRecyclerOptions<ChallengeCommentsBottomSheetModel> options, Context context) {
         super(options);

@@ -8,6 +8,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,13 +23,6 @@ import androidx.paging.PagingConfig;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
-import android.os.Handler;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageButton;
-import android.widget.Toast;
 
 import com.firebase.ui.firestore.paging.FirestorePagingOptions;
 import com.google.android.gms.tasks.Continuation;
@@ -60,34 +59,34 @@ import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class HomeFragment extends Fragment implements MainHomeChallengesRecyclerAdapter.ListItemButtonClick {
 
-    OpenCommentsBox openCommentsBox;
-    NoConnection noConnection;
+    private OpenCommentsBox openCommentsBox;
+    private NoConnection noConnection;
 
-    SwipeRefreshLayout mainHomeSwipeRefreshLayout;
-    RecyclerView mainHomeChallengesRecyclerView;
+    private SwipeRefreshLayout mainHomeSwipeRefreshLayout;
+    private RecyclerView mainHomeChallengesRecyclerView;
 
-    MainHomeChallengesRecyclerAdapter mainHomeChallengesRecyclerAdapter;
+    private MainHomeChallengesRecyclerAdapter mainHomeChallengesRecyclerAdapter;
 
-    FirebaseFirestore firebaseFirestore;
-    FirebaseAuth firebaseAuth;
-    FirebaseUser firebaseUser;
-    FirebaseStorage firebaseStorage;
-    FirebaseDynamicLinks firebaseDynamicLinks;
+    private FirebaseFirestore firebaseFirestore;
+    private FirebaseAuth firebaseAuth;
+    private FirebaseUser firebaseUser;
+    private FirebaseStorage firebaseStorage;
+    private FirebaseDynamicLinks firebaseDynamicLinks;
 
-    String currentUserID;
+    private String currentUserID;
 
-    DocumentReference currentUserDocument;
-    DocumentReference challengeDocument;
-    StorageReference challengeStorageReference;
+    private DocumentReference currentUserDocument;
+    private DocumentReference challengeDocument;
+    private StorageReference challengeStorageReference;
 
-    ImageButton likeButton;
+    private ImageButton likeButton;
 
-    ProgressDialog progressDialog;
+    private ProgressDialog progressDialog;
 
-    EasyNetworkMod easyNetworkMod;
+    private EasyNetworkMod easyNetworkMod;
 
-    SharedPreferences challengePreferences;
-    SharedPreferences.Editor editor;
+    private SharedPreferences challengePreferences;
+    private SharedPreferences.Editor editor;
 
     public static final String APP_IMAGE_URL = "https://i.ibb.co/5Ttz167/Dare-Me.png";
 
@@ -103,6 +102,14 @@ public class HomeFragment extends Fragment implements MainHomeChallengesRecycler
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        initVars(view);
+        setupAdapter();
+        setOnClicks();
+
+    }
+
+    private void initVars(View view) {
 
         mainHomeSwipeRefreshLayout = view.findViewById(R.id.main_home_swipe_refresh_layout);
         mainHomeChallengesRecyclerView = view.findViewById(R.id.main_home_challenges_recycler_view);
@@ -123,6 +130,10 @@ public class HomeFragment extends Fragment implements MainHomeChallengesRecycler
 
         challengePreferences = getContext().getSharedPreferences("Challenge Preferences", Context.MODE_PRIVATE);
 
+    }
+
+    private void setupAdapter() {
+
         Query query = firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Challenges").orderBy("timestamp", Query.Direction.DESCENDING);
 
         PagingConfig config = new PagingConfig(3, 5, false, 10);
@@ -137,6 +148,10 @@ public class HomeFragment extends Fragment implements MainHomeChallengesRecycler
         mainHomeChallengesRecyclerView.setHasFixedSize(true);
         mainHomeChallengesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mainHomeChallengesRecyclerView.setAdapter(mainHomeChallengesRecyclerAdapter);
+
+    }
+
+    private void setOnClicks() {
 
         mainHomeSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -210,70 +225,70 @@ public class HomeFragment extends Fragment implements MainHomeChallengesRecycler
             firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections")
                     .collection("ShareableLinks").whereEqualTo("challenge_id", challengeID)
                     .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                @Override
-                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        @Override
+                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                    if (queryDocumentSnapshots.isEmpty()) {
+                            if (queryDocumentSnapshots.isEmpty()) {
 
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        byte[] bytes = baos.toByteArray();
+                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                byte[] bytes = baos.toByteArray();
 
-                        // Upload To Storage
-                        UploadTask uploadTask = challengeStorageReference.putBytes(bytes);
+                                // Upload To Storage
+                                UploadTask uploadTask = challengeStorageReference.putBytes(bytes);
 
-                        // Get Download Url
-                        Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-                            @Override
-                            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                                // Get Download Url
+                                Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                                            @Override
+                                            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
 
-                                if (!task.isSuccessful()) {
-                                    throw task.getException();
+                                                if (!task.isSuccessful()) {
+                                                    throw task.getException();
+                                                }
+
+                                                // Continue with the task to get the download URL
+                                                return challengeStorageReference.getDownloadUrl();
+
+                                            }
+                                        })
+                                        .addOnCompleteListener(new OnCompleteListener<Uri>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Uri> task) {
+
+                                                if (task.isSuccessful()) {
+
+                                                    Uri downloadUri = task.getResult();
+                                                    createLink(downloadUri, challengeID, username, challengesUsername);
+
+                                                } else {
+                                                    progressDialog.dismiss();
+                                                    Toast.makeText(getContext(), getString(R.string.error_sharing_the_challenge), Toast.LENGTH_SHORT).show();
+                                                }
+
+                                            }
+                                        });
+
+                            } else {
+
+                                for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
+
+                                    firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                            .collection("ShareableLinks").document(documentSnapshot.getId())
+                                            .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                                                @Override
+                                                public void onSuccess(DocumentSnapshot documentSnapshot) {
+
+                                                    String storageLink = documentSnapshot.getString("storage_link");
+                                                    createLink(Uri.parse(storageLink), challengeID, username, challengesUsername);
+
+                                                }
+                                            });
+
                                 }
-
-                                // Continue with the task to get the download URL
-                                return challengeStorageReference.getDownloadUrl();
 
                             }
-                        })
-                                .addOnCompleteListener(new OnCompleteListener<Uri>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Uri> task) {
-
-                                        if (task.isSuccessful()) {
-
-                                            Uri downloadUri = task.getResult();
-                                            createLink(downloadUri, challengeID, username, challengesUsername);
-
-                                        } else {
-                                            progressDialog.dismiss();
-                                            Toast.makeText(getContext(), getString(R.string.error_sharing_the_challenge), Toast.LENGTH_SHORT).show();
-                                        }
-
-                                    }
-                                });
-
-                    } else {
-
-                        for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
-
-                            firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                    .collection("ShareableLinks").document(documentSnapshot.getId())
-                                    .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                @Override
-                                public void onSuccess(DocumentSnapshot documentSnapshot) {
-
-                                    String storageLink = documentSnapshot.getString("storage_link");
-                                    createLink(Uri.parse(storageLink), challengeID, username, challengesUsername);
-
-                                }
-                            });
 
                         }
-
-                    }
-
-                }
-            });
+                    });
 
         } else {
             noConnection.noConnection();
@@ -461,24 +476,24 @@ public class HomeFragment extends Fragment implements MainHomeChallengesRecycler
                                             firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections")
                                                     .collection("Users").whereEqualTo("username", challengesUsername)
                                                     .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                                @Override
-                                                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                                        @Override
+                                                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                                                    if (!queryDocumentSnapshots.isEmpty()) {
+                                                            if (!queryDocumentSnapshots.isEmpty()) {
 
-                                                        for (DocumentSnapshot documentSnapshot1 : queryDocumentSnapshots.getDocuments()) {
+                                                                for (DocumentSnapshot documentSnapshot1 : queryDocumentSnapshots.getDocuments()) {
 
-                                                            firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                                                    .collection("Users").document(documentSnapshot1.getId())
-                                                                    .collection("CompletedChallenges").document(challengeDocument.getId())
-                                                                    .set(documentSnapshot.getData());
+                                                                    firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                                                            .collection("Users").document(documentSnapshot1.getId())
+                                                                            .collection("CompletedChallenges").document(challengeDocument.getId())
+                                                                            .set(documentSnapshot.getData());
+
+                                                                }
+
+                                                            }
 
                                                         }
-
-                                                    }
-
-                                                }
-                                            });
+                                                    });
 
                                         }
                                     });

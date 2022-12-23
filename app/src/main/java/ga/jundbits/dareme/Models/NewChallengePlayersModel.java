@@ -2,7 +2,7 @@ package ga.jundbits.dareme.Models;
 
 public class NewChallengePlayersModel {
 
-    String id, image, username;
+    private String id, image, username;
 
     public NewChallengePlayersModel() {
 

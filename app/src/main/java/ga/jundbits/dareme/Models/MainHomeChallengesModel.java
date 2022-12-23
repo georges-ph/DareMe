@@ -2,9 +2,9 @@ package ga.jundbits.dareme.Models;
 
 public class MainHomeChallengesModel {
 
-    String image, username, challenges_username, color, text, prize, user_id, player_user_id;
-    long date_time_millis;
-    boolean accepted, completed, failed;
+    private String image, username, challenges_username, color, text, prize, user_id, player_user_id;
+    private long date_time_millis;
+    private boolean accepted, completed, failed;
 
     public MainHomeChallengesModel() {
 
