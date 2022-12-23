@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<defaultsMap>
+
+    <entry>
+        <key>dare_me_app_version</key>
+        <value>1.0</value>
+    </entry>
+
+    <entry>
+        <key>dare_me_denied_app_access</key>
+        <value>false</value>
+    </entry>
+
+    <entry>
+        <key>dare_me_force_update</key>
+        <value>false</value>
+    </entry>
+
+</defaultsMap>

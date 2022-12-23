@@ -10,7 +10,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -22,11 +21,11 @@ import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
 import com.google.firebase.dynamiclinks.PendingDynamicLinkData;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 import com.google.firebase.storage.FirebaseStorage;
 
 import java.util.HashMap;
@@ -42,6 +41,7 @@ public class SplashActivity extends AppCompatActivity {
     private ConstraintLayout splashUpdateLayout;
     private Button splashUpdateButton;
 
+    private FirebaseRemoteConfig firebaseRemoteConfig;
     private FirebaseFirestore firebaseFirestore;
     private FirebaseAuth firebaseAuth;
     private FirebaseUser firebaseUser;
@@ -64,6 +64,7 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(R.layout.activity_splash);
 
         initVars();
+        loadData();
 
     }
 
@@ -72,44 +73,24 @@ public class SplashActivity extends AppCompatActivity {
         splashUpdateLayout = findViewById(R.id.splash_update_layout);
         splashUpdateButton = findViewById(R.id.splash_update_button);
 
+        firebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
         firebaseFirestore = FirebaseFirestore.getInstance();
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
         firebaseDynamicLinks = FirebaseDynamicLinks.getInstance();
         firebaseStorage = FirebaseStorage.getInstance();
 
+        FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder()
+                .setMinimumFetchIntervalInSeconds(60 * 60 * 2) // 2 hours
+                .build();
+        firebaseRemoteConfig.setConfigSettingsAsync(configSettings);
+        firebaseRemoteConfig.setDefaultsAsync(R.xml.firebase_remote_config_defaults);
+
         deviceID = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
 
     }
 
-    private void registerDevice() {
-
-        final Map<String, Object> deviceMap = new HashMap<>();
-        deviceMap.put("device_id", deviceID);
-        deviceMap.put("denied", false);
-        Log
-                .d("msggg", "id: " + deviceID);
-
-        firebaseFirestore.collection("Devices").document(deviceID)
-                .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-
-                        if (!documentSnapshot.exists()) {
-
-                            firebaseFirestore.collection("Devices").document(deviceID)
-                                    .set(deviceMap);
-
-                        }
-
-                    }
-                });
-
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
+    private void loadData() {
 
         FirebaseMessaging.getInstance()
                 .getToken()
@@ -122,112 +103,98 @@ public class SplashActivity extends AppCompatActivity {
                     }
                 });
 
-        firebaseFirestore.collection("Devices").document(deviceID)
-                .addSnapshotListener(SplashActivity.this, new EventListener<DocumentSnapshot>() {
+        firebaseRemoteConfig.fetchAndActivate()
+                .addOnSuccessListener(this, new OnSuccessListener<Boolean>() {
                     @Override
-                    public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
+                    public void onSuccess(Boolean aBoolean) {
 
-                        if (documentSnapshot != null && documentSnapshot.exists()) {
+                        double version = firebaseRemoteConfig.getDouble("dare_me_app_version");
+                        boolean deniedAppAccess = firebaseRemoteConfig.getBoolean("dare_me_denied_app_access");
+                        boolean forceUpdate = firebaseRemoteConfig.getBoolean("dare_me_force_update");
 
-                            boolean denied = documentSnapshot.getBoolean("denied");
+                        if (deniedAppAccess) {
 
-                            if (denied) {
+                            Toast.makeText(SplashActivity.this, getString(R.string.error_please_try_again_later), Toast.LENGTH_SHORT).show();
+                            finish();
 
-                                Toast.makeText(SplashActivity.this, getString(R.string.error_please_try_again_later), Toast.LENGTH_SHORT).show();
+                        } else {
+
+                            if (firebaseUser == null) {
+
+                                Intent registerIntent = new Intent(SplashActivity.this, StartActivity.class);
+                                startActivity(registerIntent);
                                 finish();
 
                             } else {
 
-                                if (firebaseUser == null) {
+                                String currentAppVersion = BuildConfig.VERSION_NAME;
 
-                                    Intent registerIntent = new Intent(SplashActivity.this, StartActivity.class);
-                                    startActivity(registerIntent);
-                                    finish();
+                                if (currentAppVersion.equals(String.valueOf(version))) {
+
+                                    startMainActivity();
 
                                 } else {
 
-                                    firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                            .collection("App").document("Updates")
-                                            .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                                @Override
-                                                public void onSuccess(DocumentSnapshot snapshot) {
+                                    if (forceUpdate) {
 
-                                                    double version = snapshot.getDouble("version");
-                                                    boolean forceUpdate = snapshot.getBoolean("force_update");
+                                        splashUpdateLayout.setVisibility(View.VISIBLE);
 
-                                                    String currentAppVersion = BuildConfig.VERSION_NAME;
+                                        splashUpdateButton.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
 
-                                                    if (currentAppVersion.equals(String.valueOf(version))) {
+                                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                                intent.setData(Uri.parse(updateFromURL));
+                                                startActivity(intent);
 
-                                                        startMainActivity();
+                                            }
+                                        });
 
-                                                    } else {
+                                    } else {
 
-                                                        if (forceUpdate) {
+                                        splashUpdateLayout.setVisibility(View.GONE);
 
-                                                            splashUpdateLayout.setVisibility(View.VISIBLE);
+                                        AlertDialog.Builder appUpdateDialogBuilder = new AlertDialog.Builder(SplashActivity.this);
+                                        appUpdateDialogBuilder.setTitle(getString(R.string.new_version_available));
+                                        appUpdateDialogBuilder.setMessage(getString(R.string.version) + " " + version + " " + getString(R.string.is_available_current_version_is) + " " + currentAppVersion);
+                                        appUpdateDialogBuilder.setPositiveButton(getString(R.string.update), new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
 
-                                                            splashUpdateButton.setOnClickListener(new View.OnClickListener() {
-                                                                @Override
-                                                                public void onClick(View v) {
+                                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                                intent.setData(Uri.parse(updateFromURL));
+                                                startActivity(intent);
 
-                                                                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                                                                    intent.setData(Uri.parse(updateFromURL));
-                                                                    startActivity(intent);
+                                            }
+                                        });
+                                        appUpdateDialogBuilder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
 
-                                                                }
-                                                            });
+                                                dialog.dismiss();
+                                                startMainActivity();
 
-                                                        } else {
+                                            }
+                                        });
+                                        appUpdateDialogBuilder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                            @Override
+                                            public void onCancel(DialogInterface dialog) {
 
-                                                            splashUpdateLayout.setVisibility(View.GONE);
+                                                dialog.dismiss();
+                                                startMainActivity();
 
-                                                            AlertDialog.Builder appUpdateDialogBuilder = new AlertDialog.Builder(SplashActivity.this);
-                                                            appUpdateDialogBuilder.setTitle(getString(R.string.new_version_available));
-                                                            appUpdateDialogBuilder.setMessage(getString(R.string.version) + " " + version + " " + getString(R.string.is_available_current_version_is) + " " + currentAppVersion);
-                                                            appUpdateDialogBuilder.setPositiveButton(getString(R.string.update), new DialogInterface.OnClickListener() {
-                                                                @Override
-                                                                public void onClick(DialogInterface dialog, int which) {
+                                            }
+                                        });
+                                        appUpdateDialogBuilder.setCancelable(true);
+                                        AlertDialog appUpdateAlertDialog = appUpdateDialogBuilder.create();
+                                        appUpdateAlertDialog.show();
 
-                                                                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                                                                    intent.setData(Uri.parse(updateFromURL));
-                                                                    startActivity(intent);
-
-                                                                }
-                                                            });
-                                                            appUpdateDialogBuilder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                                                                @Override
-                                                                public void onClick(DialogInterface dialog, int which) {
-                                                                    dialog.dismiss();
-                                                                    startMainActivity();
-                                                                }
-                                                            });
-                                                            appUpdateDialogBuilder.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                                                                @Override
-                                                                public void onCancel(DialogInterface dialog) {
-
-                                                                    dialog.dismiss();
-                                                                    startMainActivity();
-
-                                                                }
-                                                            });
-                                                            appUpdateDialogBuilder.setCancelable(true);
-                                                            AlertDialog appUpdateAlertDialog = appUpdateDialogBuilder.create();
-                                                            appUpdateAlertDialog.show();
-
-                                                        }
-
-                                                    }
-
-                                                }
-                                            });
+                                    }
 
                                 }
 
                             }
 
-                        } else {
-                            registerDevice();
                         }
 
                     }
