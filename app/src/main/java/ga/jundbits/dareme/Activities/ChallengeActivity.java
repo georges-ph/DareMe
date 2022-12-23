@@ -70,11 +70,8 @@ import ga.jundbits.dareme.Adapters.ChallengeCommentsBottomSheetRecyclerAdapter;
 import ga.jundbits.dareme.Models.ChallengeCommentsBottomSheetModel;
 import ga.jundbits.dareme.R;
 import ga.jundbits.dareme.Utils.TimeAgo;
-import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class ChallengeActivity extends AppCompatActivity implements View.OnClickListener {
-
-    private ConstraintLayout noConnectionLayout;
 
     private ConstraintLayout challengeConstraintLayout;
     private Toolbar challengeToolbar;
@@ -121,8 +118,6 @@ public class ChallengeActivity extends AppCompatActivity implements View.OnClick
 
     public static final String APP_IMAGE_URL = "https://i.ibb.co/5Ttz167/Dare-Me.png";
 
-    private EasyNetworkMod easyNetworkMod;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -136,8 +131,6 @@ public class ChallengeActivity extends AppCompatActivity implements View.OnClick
     }
 
     private void initVars() {
-
-        noConnectionLayout = findViewById(R.id.no_connection_layout);
 
         challengeConstraintLayout = findViewById(R.id.challenge_constraint_layout);
         challengeToolbar = findViewById(R.id.challenge_toolbar);
@@ -187,8 +180,6 @@ public class ChallengeActivity extends AppCompatActivity implements View.OnClick
 
         returnIntent = new Intent();
 
-        easyNetworkMod = new EasyNetworkMod(this);
-
     }
 
     private void setupToolbar() {
@@ -223,287 +214,275 @@ public class ChallengeActivity extends AppCompatActivity implements View.OnClick
 
     private void loadChallenge() {
 
-        if (easyNetworkMod.isNetworkAvailable()) {
-
-            challengeDocument.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-
-                    if (task.isSuccessful()) {
-
-                        DocumentSnapshot documentSnapshot = task.getResult();
-
-                        // Retrieving
-                        final String watcherUserID = documentSnapshot.getString("user_id");
-                        final String playerUserID = documentSnapshot.getString("player_user_id");
-                        String image = documentSnapshot.getString("image");
-                        final String username = documentSnapshot.getString("username");
-                        final String challengesUsername = documentSnapshot.getString("challenges_username");
-                        long dateTimeMillis = documentSnapshot.getLong("date_time_millis");
-                        String color = documentSnapshot.getString("color");
-                        String text = documentSnapshot.getString("text");
-                        String prizeList = documentSnapshot.getString("prize");
-                        final boolean completed = documentSnapshot.getBoolean("completed");
-                        final boolean failed = documentSnapshot.getBoolean("failed");
-                        String videoProof = documentSnapshot.getString("video_proof");
-
-                        // Applying
-                        if (image.equals("default")) {
-                            challengeUserImage.setImageResource(R.mipmap.no_image);
-                        } else {
-                            Glide.with(ChallengeActivity.this).load(image).into(challengeUserImage);
-                        }
-                        challengeUserUsername.setText(username);
-
-                        currentUserDocument.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                            @Override
-                            public void onSuccess(DocumentSnapshot snapshot) {
-
-                                String currentUserUsername = snapshot.getString("username");
-
-                                if (challengesUsername.equals(currentUserUsername)) {
-                                    challengeChallengesUsername.setText(R.string.challenges_you);
-                                } else {
-                                    challengeChallengesUsername.setText(getString(R.string.challenges) + " " + challengesUsername);
-                                }
-
-                            }
-                        });
-
-                        challengeChallengesTimeAgo.setText(timeAgo.getTimeAgo(ChallengeActivity.this, dateTimeMillis));
-                        challengeTextLayout.setBackgroundColor(Color.parseColor(color));
-                        challengeText.setText(text);
-                        challengePrizeList.setText(getString(R.string.prize) + "\n" + prizeList);
-
-                        if (completed) {
-                            challengeStatusCompletedLayout.setVisibility(View.VISIBLE);
-                        } else {
-                            challengeStatusCompletedLayout.setVisibility(View.GONE);
-                        }
-
-                        if (failed) {
-                            challengeStatusFailedLayout.setVisibility(View.VISIBLE);
-                        } else {
-                            challengeStatusFailedLayout.setVisibility(View.GONE);
-
-                        }
-
-                        checkIfLiked();
-                        retrieveCounters();
-
-                        if (!TextUtils.isEmpty(videoProof)) {
-
-                            challengeProofLayout.setVisibility(View.VISIBLE);
-
-                            DisplayMetrics displayMetrics = new DisplayMetrics();
-                            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-                            final int screenWidth = displayMetrics.widthPixels;
-
-                            challengeProofVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                                @Override
-                                public void onPrepared(MediaPlayer mp) {
-
-                                    mp.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT);
-
-                                    ViewGroup.LayoutParams params = challengeProofVideoView.getLayoutParams();
-                                    params.width = screenWidth;
-                                    params.height = screenWidth;
-                                    challengeProofVideoView.setLayoutParams(params);
-
-                                }
-                            });
-
-                            final MediaController mediaController = new MediaController(ChallengeActivity.this);
-                            mediaController.setAnchorView(challengeProofVideoView);
-
-                            challengeProofVideoView.setMediaController(mediaController);
-                            challengeProofVideoView.setVideoURI(Uri.parse(videoProof));
-                            challengeProofVideoView.seekTo(100);
-
-                            challengeProofVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                                @Override
-                                public void onCompletion(MediaPlayer mp) {
-                                    mediaController.show();
-                                }
-                            });
-
-                        }
-
-                        // Set on-clicks
-                        challengeUserImage.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                openProfile(watcherUserID);
-                            }
-                        });
-
-                        challengeUserUsername.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                openProfile(watcherUserID);
-                            }
-                        });
-
-                        challengeChallengesUsername.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-
-                                firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                        .collection("Users").whereEqualTo("username", challengesUsername)
-                                        .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                            @Override
-                                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-
-                                                if (!queryDocumentSnapshots.isEmpty()) {
-
-                                                    for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
-
-                                                        firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                                                .collection("Users").document(documentSnapshot.getId())
-                                                                .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                                                    @Override
-                                                                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-
-                                                                        String userID = documentSnapshot.getString("id");
-                                                                        openProfile(userID);
-
-                                                                    }
-                                                                });
-
-                                                    }
-
-                                                }
-
-                                            }
-                                        });
-
-                            }
-                        });
-
-                        challengeLikeButton.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-
-                                // Add to challenge document
-                                firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                        .collection("Challenges").document(challengeID)
-                                        .collection("Likes").document(currentUserID)
-                                        .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                            @Override
-                                            public void onSuccess(DocumentSnapshot documentSnapshot) {
-
-                                                if (documentSnapshot.exists()) {
-
-                                                    challengeLikeButton.setImageResource(R.drawable.ic_like_grey_32dp);
-
-                                                    firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                                            .collection("Challenges").document(challengeID)
-                                                            .collection("Likes").document(currentUserID)
-                                                            .delete();
-
-                                                } else {
-
-                                                    challengeLikeButton.setImageResource(R.drawable.ic_like_red_32dp);
-
-                                                    Map<String, Object> likeMap = new HashMap<>();
-                                                    likeMap.put("user_id", currentUserID);
-                                                    likeMap.put("timestamp", FieldValue.serverTimestamp());
-
-                                                    firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                                            .collection("Challenges").document(challengeID)
-                                                            .collection("Likes").document(currentUserID)
-                                                            .set(likeMap);
-
-                                                }
-
-                                            }
-                                        });
-
-                                // Add to watcher document
-                                firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                        .collection("Users").document(watcherUserID)
-                                        .collection("Likes").document(currentUserID)
-                                        .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                            @Override
-                                            public void onSuccess(DocumentSnapshot documentSnapshot) {
-
-                                                if (documentSnapshot.exists()) {
-
-                                                    firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                                            .collection("Users").document(watcherUserID)
-                                                            .collection("Likes").document(currentUserID)
-                                                            .delete();
-
-                                                } else {
-
-                                                    Map<String, Object> likeMap = new HashMap<>();
-                                                    likeMap.put("user_id", currentUserID);
-                                                    likeMap.put("timestamp", FieldValue.serverTimestamp());
-
-                                                    firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                                            .collection("Users").document(watcherUserID)
-                                                            .collection("Likes").document(currentUserID)
-                                                            .set(likeMap);
-
-                                                }
-
-                                            }
-                                        });
-
-                                // Add to player document
-                                firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                        .collection("Users").document(playerUserID)
-                                        .collection("Likes").document(currentUserID)
-                                        .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                            @Override
-                                            public void onSuccess(DocumentSnapshot documentSnapshot) {
-
-                                                if (documentSnapshot.exists()) {
-
-                                                    firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                                            .collection("Users").document(playerUserID)
-                                                            .collection("Likes").document(currentUserID)
-                                                            .delete();
-
-                                                } else {
-
-                                                    Map<String, Object> likeMap = new HashMap<>();
-                                                    likeMap.put("user_id", currentUserID);
-                                                    likeMap.put("timestamp", FieldValue.serverTimestamp());
-
-                                                    firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                                            .collection("Users").document(playerUserID)
-                                                            .collection("Likes").document(currentUserID)
-                                                            .set(likeMap);
-
-                                                }
-
-                                            }
-                                        });
-
-                            }
-                        });
-
+        challengeDocument.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+
+                if (task.isSuccessful()) {
+
+                    DocumentSnapshot documentSnapshot = task.getResult();
+
+                    // Retrieving
+                    final String watcherUserID = documentSnapshot.getString("user_id");
+                    final String playerUserID = documentSnapshot.getString("player_user_id");
+                    String image = documentSnapshot.getString("image");
+                    final String username = documentSnapshot.getString("username");
+                    final String challengesUsername = documentSnapshot.getString("challenges_username");
+                    long dateTimeMillis = documentSnapshot.getLong("date_time_millis");
+                    String color = documentSnapshot.getString("color");
+                    String text = documentSnapshot.getString("text");
+                    String prizeList = documentSnapshot.getString("prize");
+                    final boolean completed = documentSnapshot.getBoolean("completed");
+                    final boolean failed = documentSnapshot.getBoolean("failed");
+                    String videoProof = documentSnapshot.getString("video_proof");
+
+                    // Applying
+                    if (image.equals("default")) {
+                        challengeUserImage.setImageResource(R.mipmap.no_image);
                     } else {
-                        Snackbar.make(challengeConstraintLayout, getString(R.string.couldnt_load_challenge), Snackbar.LENGTH_SHORT).show();
+                        Glide.with(ChallengeActivity.this).load(image).into(challengeUserImage);
+                    }
+                    challengeUserUsername.setText(username);
+
+                    currentUserDocument.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                        @Override
+                        public void onSuccess(DocumentSnapshot snapshot) {
+
+                            String currentUserUsername = snapshot.getString("username");
+
+                            if (challengesUsername.equals(currentUserUsername)) {
+                                challengeChallengesUsername.setText(R.string.challenges_you);
+                            } else {
+                                challengeChallengesUsername.setText(getString(R.string.challenges) + " " + challengesUsername);
+                            }
+
+                        }
+                    });
+
+                    challengeChallengesTimeAgo.setText(timeAgo.getTimeAgo(ChallengeActivity.this, dateTimeMillis));
+                    challengeTextLayout.setBackgroundColor(Color.parseColor(color));
+                    challengeText.setText(text);
+                    challengePrizeList.setText(getString(R.string.prize) + "\n" + prizeList);
+
+                    if (completed) {
+                        challengeStatusCompletedLayout.setVisibility(View.VISIBLE);
+                    } else {
+                        challengeStatusCompletedLayout.setVisibility(View.GONE);
                     }
 
-                    if (challengeSwipeRefreshLayout.isRefreshing()) {
-                        challengeSwipeRefreshLayout.setRefreshing(false);
+                    if (failed) {
+                        challengeStatusFailedLayout.setVisibility(View.VISIBLE);
+                    } else {
+                        challengeStatusFailedLayout.setVisibility(View.GONE);
+
                     }
 
+                    checkIfLiked();
+                    retrieveCounters();
+
+                    if (!TextUtils.isEmpty(videoProof)) {
+
+                        challengeProofLayout.setVisibility(View.VISIBLE);
+
+                        DisplayMetrics displayMetrics = new DisplayMetrics();
+                        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+                        final int screenWidth = displayMetrics.widthPixels;
+
+                        challengeProofVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                            @Override
+                            public void onPrepared(MediaPlayer mp) {
+
+                                mp.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT);
+
+                                ViewGroup.LayoutParams params = challengeProofVideoView.getLayoutParams();
+                                params.width = screenWidth;
+                                params.height = screenWidth;
+                                challengeProofVideoView.setLayoutParams(params);
+
+                            }
+                        });
+
+                        final MediaController mediaController = new MediaController(ChallengeActivity.this);
+                        mediaController.setAnchorView(challengeProofVideoView);
+
+                        challengeProofVideoView.setMediaController(mediaController);
+                        challengeProofVideoView.setVideoURI(Uri.parse(videoProof));
+                        challengeProofVideoView.seekTo(100);
+
+                        challengeProofVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                            @Override
+                            public void onCompletion(MediaPlayer mp) {
+                                mediaController.show();
+                            }
+                        });
+
+                    }
+
+                    // Set on-clicks
+                    challengeUserImage.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            openProfile(watcherUserID);
+                        }
+                    });
+
+                    challengeUserUsername.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            openProfile(watcherUserID);
+                        }
+                    });
+
+                    challengeChallengesUsername.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+
+                            firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                    .collection("Users").whereEqualTo("username", challengesUsername)
+                                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                        @Override
+                                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+
+                                            if (!queryDocumentSnapshots.isEmpty()) {
+
+                                                for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
+
+                                                    firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                                            .collection("Users").document(documentSnapshot.getId())
+                                                            .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                                                                @Override
+                                                                public void onSuccess(DocumentSnapshot documentSnapshot) {
+
+                                                                    String userID = documentSnapshot.getString("id");
+                                                                    openProfile(userID);
+
+                                                                }
+                                                            });
+
+                                                }
+
+                                            }
+
+                                        }
+                                    });
+
+                        }
+                    });
+
+                    challengeLikeButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+
+                            // Add to challenge document
+                            firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                    .collection("Challenges").document(challengeID)
+                                    .collection("Likes").document(currentUserID)
+                                    .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                                        @Override
+                                        public void onSuccess(DocumentSnapshot documentSnapshot) {
+
+                                            if (documentSnapshot.exists()) {
+
+                                                challengeLikeButton.setImageResource(R.drawable.ic_like_grey_32dp);
+
+                                                firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                                        .collection("Challenges").document(challengeID)
+                                                        .collection("Likes").document(currentUserID)
+                                                        .delete();
+
+                                            } else {
+
+                                                challengeLikeButton.setImageResource(R.drawable.ic_like_red_32dp);
+
+                                                Map<String, Object> likeMap = new HashMap<>();
+                                                likeMap.put("user_id", currentUserID);
+                                                likeMap.put("timestamp", FieldValue.serverTimestamp());
+
+                                                firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                                        .collection("Challenges").document(challengeID)
+                                                        .collection("Likes").document(currentUserID)
+                                                        .set(likeMap);
+
+                                            }
+
+                                        }
+                                    });
+
+                            // Add to watcher document
+                            firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                    .collection("Users").document(watcherUserID)
+                                    .collection("Likes").document(currentUserID)
+                                    .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                                        @Override
+                                        public void onSuccess(DocumentSnapshot documentSnapshot) {
+
+                                            if (documentSnapshot.exists()) {
+
+                                                firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                                        .collection("Users").document(watcherUserID)
+                                                        .collection("Likes").document(currentUserID)
+                                                        .delete();
+
+                                            } else {
+
+                                                Map<String, Object> likeMap = new HashMap<>();
+                                                likeMap.put("user_id", currentUserID);
+                                                likeMap.put("timestamp", FieldValue.serverTimestamp());
+
+                                                firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                                        .collection("Users").document(watcherUserID)
+                                                        .collection("Likes").document(currentUserID)
+                                                        .set(likeMap);
+
+                                            }
+
+                                        }
+                                    });
+
+                            // Add to player document
+                            firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                    .collection("Users").document(playerUserID)
+                                    .collection("Likes").document(currentUserID)
+                                    .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                                        @Override
+                                        public void onSuccess(DocumentSnapshot documentSnapshot) {
+
+                                            if (documentSnapshot.exists()) {
+
+                                                firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                                        .collection("Users").document(playerUserID)
+                                                        .collection("Likes").document(currentUserID)
+                                                        .delete();
+
+                                            } else {
+
+                                                Map<String, Object> likeMap = new HashMap<>();
+                                                likeMap.put("user_id", currentUserID);
+                                                likeMap.put("timestamp", FieldValue.serverTimestamp());
+
+                                                firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                                        .collection("Users").document(playerUserID)
+                                                        .collection("Likes").document(currentUserID)
+                                                        .set(likeMap);
+
+                                            }
+
+                                        }
+                                    });
+
+                        }
+                    });
+
+                } else {
+                    Snackbar.make(challengeConstraintLayout, getString(R.string.couldnt_load_challenge), Snackbar.LENGTH_SHORT).show();
                 }
-            });
 
-        } else {
+                if (challengeSwipeRefreshLayout.isRefreshing()) {
+                    challengeSwipeRefreshLayout.setRefreshing(false);
+                }
 
-            if (challengeSwipeRefreshLayout.isRefreshing()) {
-                challengeSwipeRefreshLayout.setRefreshing(false);
             }
-
-            noConnectionAvailable();
-
-        }
+        });
 
     }
 
@@ -538,23 +517,6 @@ public class ChallengeActivity extends AppCompatActivity implements View.OnClick
 
                     }
                 });
-
-    }
-
-    private void noConnectionAvailable() {
-
-        noConnectionLayout.setVisibility(View.VISIBLE);
-
-        noConnectionLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                if (easyNetworkMod.isNetworkAvailable()) {
-                    noConnectionLayout.setVisibility(View.GONE);
-                }
-
-            }
-        });
 
     }
 
@@ -725,58 +687,52 @@ public class ChallengeActivity extends AppCompatActivity implements View.OnClick
             @Override
             public void onClick(View v) {
 
-                if (easyNetworkMod.isNetworkAvailable()) {
+                final String comment = challengeCommentsBottomSheetCommentEditText.getText().toString().trim();
 
-                    final String comment = challengeCommentsBottomSheetCommentEditText.getText().toString().trim();
+                challengeCommentsBottomSheetCommentEditText.getText().clear();
 
-                    challengeCommentsBottomSheetCommentEditText.getText().clear();
+                currentUserDocument.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
 
-                    currentUserDocument.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                        @Override
-                        public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        String currentUserUsername = documentSnapshot.getString("username");
+                        String currentUserImage = documentSnapshot.getString("image");
 
-                            String currentUserUsername = documentSnapshot.getString("username");
-                            String currentUserImage = documentSnapshot.getString("image");
+                        Timestamp timestamp = Timestamp.now();
 
-                            Timestamp timestamp = Timestamp.now();
+                        long timestampSeconds = timestamp.getSeconds();
+                        long timestampNanoSeconds = timestamp.getNanoseconds();
+                        long timestampSecondsToMillis = TimeUnit.SECONDS.toMillis(timestampSeconds);
+                        long timestampNanoSecondsToMillis = TimeUnit.NANOSECONDS.toMillis(timestampNanoSeconds);
+                        long timestampTotalMillis = timestampSecondsToMillis + timestampNanoSecondsToMillis;
 
-                            long timestampSeconds = timestamp.getSeconds();
-                            long timestampNanoSeconds = timestamp.getNanoseconds();
-                            long timestampSecondsToMillis = TimeUnit.SECONDS.toMillis(timestampSeconds);
-                            long timestampNanoSecondsToMillis = TimeUnit.NANOSECONDS.toMillis(timestampNanoSeconds);
-                            long timestampTotalMillis = timestampSecondsToMillis + timestampNanoSecondsToMillis;
+                        Map<String, Object> commentMap = new HashMap<>();
+                        commentMap.put("comment", comment);
+                        commentMap.put("user_id", currentUserID);
+                        commentMap.put("username", currentUserUsername);
+                        commentMap.put("image", currentUserImage);
+                        commentMap.put("timestamp", FieldValue.serverTimestamp());
+                        commentMap.put("date_time_millis", timestampTotalMillis);
 
-                            Map<String, Object> commentMap = new HashMap<>();
-                            commentMap.put("comment", comment);
-                            commentMap.put("user_id", currentUserID);
-                            commentMap.put("username", currentUserUsername);
-                            commentMap.put("image", currentUserImage);
-                            commentMap.put("timestamp", FieldValue.serverTimestamp());
-                            commentMap.put("date_time_millis", timestampTotalMillis);
+                        firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                .collection("Challenges").document(challengeID)
+                                .collection("Comments")
+                                .add(commentMap)
+                                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                    @Override
+                                    public void onSuccess(DocumentReference documentReference) {
+                                        challengeCommentsRecyclerView.smoothScrollToPosition(0);
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Toast.makeText(ChallengeActivity.this, getString(R.string.error_please_try_again_later), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
 
-                            firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                    .collection("Challenges").document(challengeID)
-                                    .collection("Comments")
-                                    .add(commentMap)
-                                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                        @Override
-                                        public void onSuccess(DocumentReference documentReference) {
-                                            challengeCommentsRecyclerView.smoothScrollToPosition(0);
-                                        }
-                                    })
-                                    .addOnFailureListener(new OnFailureListener() {
-                                        @Override
-                                        public void onFailure(@NonNull Exception e) {
-                                            Toast.makeText(ChallengeActivity.this, getString(R.string.error_please_try_again_later), Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
-
-                        }
-                    });
-
-                } else {
-                    noConnectionAvailable();
-                }
+                    }
+                });
 
             }
         });
@@ -788,84 +744,78 @@ public class ChallengeActivity extends AppCompatActivity implements View.OnClick
         challengeDocument = firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Challenges").document(challengeID);
         challengeStorageReference = firebaseStorage.getReference().child(getString(R.string.app_name)).child("Challenges").child(challengeID).child(challengeID);
 
-        if (easyNetworkMod.isNetworkAvailable()) {
+        progressDialog.setMessage(getString(R.string.please_wait));
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
+        progressDialog.show();
 
-            progressDialog.setMessage(getString(R.string.please_wait));
-            progressDialog.setCancelable(false);
-            progressDialog.setCanceledOnTouchOutside(false);
-            progressDialog.show();
+        firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                .collection("ShareableLinks").whereEqualTo("challenge_id", challengeID)
+                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-            firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                    .collection("ShareableLinks").whereEqualTo("challenge_id", challengeID)
-                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                        @Override
-                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        if (queryDocumentSnapshots.isEmpty()) {
 
-                            if (queryDocumentSnapshots.isEmpty()) {
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            byte[] bytes = baos.toByteArray();
 
-                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                byte[] bytes = baos.toByteArray();
+                            // Upload To Storage
+                            UploadTask uploadTask = challengeStorageReference.putBytes(bytes);
 
-                                // Upload To Storage
-                                UploadTask uploadTask = challengeStorageReference.putBytes(bytes);
+                            // Get Download Url
+                            Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                                        @Override
+                                        public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
 
-                                // Get Download Url
-                                Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-                                            @Override
-                                            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
-
-                                                if (!task.isSuccessful()) {
-                                                    throw task.getException();
-                                                }
-
-                                                // Continue with the task to get the download URL
-                                                return challengeStorageReference.getDownloadUrl();
-
+                                            if (!task.isSuccessful()) {
+                                                throw task.getException();
                                             }
-                                        })
-                                        .addOnCompleteListener(new OnCompleteListener<Uri>() {
+
+                                            // Continue with the task to get the download URL
+                                            return challengeStorageReference.getDownloadUrl();
+
+                                        }
+                                    })
+                                    .addOnCompleteListener(new OnCompleteListener<Uri>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Uri> task) {
+
+                                            if (task.isSuccessful()) {
+
+                                                Uri downloadUri = task.getResult();
+                                                createLink(downloadUri, challengeID, challengeUserUsername.getText().toString(), challengeChallengesUsername.getText().toString());
+
+                                            } else {
+                                                progressDialog.dismiss();
+                                                Toast.makeText(ChallengeActivity.this, getString(R.string.error_sharing_the_challenge), Toast.LENGTH_SHORT).show();
+                                            }
+
+                                        }
+                                    });
+
+                        } else {
+
+                            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
+
+                                firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                        .collection("ShareableLinks").document(documentSnapshot.getId())
+                                        .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                                             @Override
-                                            public void onComplete(@NonNull Task<Uri> task) {
+                                            public void onSuccess(DocumentSnapshot documentSnapshot) {
 
-                                                if (task.isSuccessful()) {
-
-                                                    Uri downloadUri = task.getResult();
-                                                    createLink(downloadUri, challengeID, challengeUserUsername.getText().toString(), challengeChallengesUsername.getText().toString());
-
-                                                } else {
-                                                    progressDialog.dismiss();
-                                                    Toast.makeText(ChallengeActivity.this, getString(R.string.error_sharing_the_challenge), Toast.LENGTH_SHORT).show();
-                                                }
+                                                String storageLink = documentSnapshot.getString("storage_link");
+                                                createLink(Uri.parse(storageLink), challengeID, challengeUserUsername.getText().toString(), challengeChallengesUsername.getText().toString());
 
                                             }
                                         });
 
-                            } else {
-
-                                for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
-
-                                    firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                            .collection("ShareableLinks").document(documentSnapshot.getId())
-                                            .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                                @Override
-                                                public void onSuccess(DocumentSnapshot documentSnapshot) {
-
-                                                    String storageLink = documentSnapshot.getString("storage_link");
-                                                    createLink(Uri.parse(storageLink), challengeID, challengeUserUsername.getText().toString(), challengeChallengesUsername.getText().toString());
-
-                                                }
-                                            });
-
-                                }
-
                             }
 
                         }
-                    });
 
-        } else {
-            noConnectionAvailable();
-        }
+                    }
+                });
 
     }
 

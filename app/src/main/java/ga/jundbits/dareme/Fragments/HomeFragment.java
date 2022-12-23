@@ -55,12 +55,10 @@ import ga.jundbits.dareme.Activities.ChallengeActivity;
 import ga.jundbits.dareme.Adapters.MainHomeChallengesRecyclerAdapter;
 import ga.jundbits.dareme.Models.MainHomeChallengesModel;
 import ga.jundbits.dareme.R;
-import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class HomeFragment extends Fragment implements MainHomeChallengesRecyclerAdapter.ListItemButtonClick {
 
     private OpenCommentsBox openCommentsBox;
-    private NoConnection noConnection;
 
     private SwipeRefreshLayout mainHomeSwipeRefreshLayout;
     private RecyclerView mainHomeChallengesRecyclerView;
@@ -82,8 +80,6 @@ public class HomeFragment extends Fragment implements MainHomeChallengesRecycler
     private ImageButton likeButton;
 
     private ProgressDialog progressDialog;
-
-    private EasyNetworkMod easyNetworkMod;
 
     private SharedPreferences challengePreferences;
     private SharedPreferences.Editor editor;
@@ -126,8 +122,6 @@ public class HomeFragment extends Fragment implements MainHomeChallengesRecycler
 
         progressDialog = new ProgressDialog(getContext());
 
-        easyNetworkMod = new EasyNetworkMod(getContext());
-
         challengePreferences = getContext().getSharedPreferences("Challenge Preferences", Context.MODE_PRIVATE);
 
     }
@@ -157,12 +151,8 @@ public class HomeFragment extends Fragment implements MainHomeChallengesRecycler
             @Override
             public void onRefresh() {
 
-                if (easyNetworkMod.isNetworkAvailable()) {
-                    mainHomeChallengesRecyclerAdapter.refresh();
-                    mainHomeSwipeRefreshLayout.setRefreshing(false);
-                } else {
-                    noConnection.noConnection();
-                }
+                mainHomeChallengesRecyclerAdapter.refresh();
+                mainHomeSwipeRefreshLayout.setRefreshing(false);
 
             }
         });
@@ -215,84 +205,78 @@ public class HomeFragment extends Fragment implements MainHomeChallengesRecycler
         challengeDocument = firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Challenges").document(challengeID);
         challengeStorageReference = firebaseStorage.getReference().child(getString(R.string.app_name)).child("Challenges").child(challengeID).child(challengeID);
 
-        if (easyNetworkMod.isNetworkAvailable()) {
+        progressDialog.setMessage(getContext().getString(R.string.please_wait));
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
+        progressDialog.show();
 
-            progressDialog.setMessage(getContext().getString(R.string.please_wait));
-            progressDialog.setCancelable(false);
-            progressDialog.setCanceledOnTouchOutside(false);
-            progressDialog.show();
+        firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections")
+                .collection("ShareableLinks").whereEqualTo("challenge_id", challengeID)
+                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-            firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections")
-                    .collection("ShareableLinks").whereEqualTo("challenge_id", challengeID)
-                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                        @Override
-                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        if (queryDocumentSnapshots.isEmpty()) {
 
-                            if (queryDocumentSnapshots.isEmpty()) {
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            byte[] bytes = baos.toByteArray();
 
-                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                byte[] bytes = baos.toByteArray();
+                            // Upload To Storage
+                            UploadTask uploadTask = challengeStorageReference.putBytes(bytes);
 
-                                // Upload To Storage
-                                UploadTask uploadTask = challengeStorageReference.putBytes(bytes);
+                            // Get Download Url
+                            Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                                        @Override
+                                        public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
 
-                                // Get Download Url
-                                Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-                                            @Override
-                                            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
-
-                                                if (!task.isSuccessful()) {
-                                                    throw task.getException();
-                                                }
-
-                                                // Continue with the task to get the download URL
-                                                return challengeStorageReference.getDownloadUrl();
-
+                                            if (!task.isSuccessful()) {
+                                                throw task.getException();
                                             }
-                                        })
-                                        .addOnCompleteListener(new OnCompleteListener<Uri>() {
+
+                                            // Continue with the task to get the download URL
+                                            return challengeStorageReference.getDownloadUrl();
+
+                                        }
+                                    })
+                                    .addOnCompleteListener(new OnCompleteListener<Uri>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Uri> task) {
+
+                                            if (task.isSuccessful()) {
+
+                                                Uri downloadUri = task.getResult();
+                                                createLink(downloadUri, challengeID, username, challengesUsername);
+
+                                            } else {
+                                                progressDialog.dismiss();
+                                                Toast.makeText(getContext(), getString(R.string.error_sharing_the_challenge), Toast.LENGTH_SHORT).show();
+                                            }
+
+                                        }
+                                    });
+
+                        } else {
+
+                            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
+
+                                firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                        .collection("ShareableLinks").document(documentSnapshot.getId())
+                                        .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                                             @Override
-                                            public void onComplete(@NonNull Task<Uri> task) {
+                                            public void onSuccess(DocumentSnapshot documentSnapshot) {
 
-                                                if (task.isSuccessful()) {
-
-                                                    Uri downloadUri = task.getResult();
-                                                    createLink(downloadUri, challengeID, username, challengesUsername);
-
-                                                } else {
-                                                    progressDialog.dismiss();
-                                                    Toast.makeText(getContext(), getString(R.string.error_sharing_the_challenge), Toast.LENGTH_SHORT).show();
-                                                }
+                                                String storageLink = documentSnapshot.getString("storage_link");
+                                                createLink(Uri.parse(storageLink), challengeID, username, challengesUsername);
 
                                             }
                                         });
 
-                            } else {
-
-                                for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
-
-                                    firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                            .collection("ShareableLinks").document(documentSnapshot.getId())
-                                            .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                                @Override
-                                                public void onSuccess(DocumentSnapshot documentSnapshot) {
-
-                                                    String storageLink = documentSnapshot.getString("storage_link");
-                                                    createLink(Uri.parse(storageLink), challengeID, username, challengesUsername);
-
-                                                }
-                                            });
-
-                                }
-
                             }
 
                         }
-                    });
 
-        } else {
-            noConnection.noConnection();
-        }
+                    }
+                });
 
     }
 
@@ -408,32 +392,22 @@ public class HomeFragment extends Fragment implements MainHomeChallengesRecycler
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
-                if (easyNetworkMod.isNetworkAvailable()) {
+                challengeDocument.update("failed", true)
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
 
-                    challengeDocument.update("failed", true)
-                            .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                @Override
-                                public void onSuccess(Void aVoid) {
+                                mainHomeChallengesRecyclerAdapter.refresh();
 
-                                    if (easyNetworkMod.isNetworkAvailable()) {
-                                        mainHomeChallengesRecyclerAdapter.refresh();
-                                    } else {
-                                        noConnection.noConnection();
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mainHomeChallengesRecyclerView.smoothScrollToPosition(challengePosition);
                                     }
+                                }, 1000);
 
-                                    new Handler().postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            mainHomeChallengesRecyclerView.smoothScrollToPosition(challengePosition);
-                                        }
-                                    }, 1000);
-
-                                }
-                            });
-
-                } else {
-                    noConnection.noConnection();
-                }
+                            }
+                        });
 
             }
         });
@@ -457,66 +431,56 @@ public class HomeFragment extends Fragment implements MainHomeChallengesRecycler
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
-                if (easyNetworkMod.isNetworkAvailable()) {
+                challengeDocument.update("completed", true)
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
 
-                    challengeDocument.update("completed", true)
-                            .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                @Override
-                                public void onSuccess(Void aVoid) {
+                                challengeDocument.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                                    @Override
+                                    public void onSuccess(final DocumentSnapshot documentSnapshot) {
 
-                                    challengeDocument.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                        @Override
-                                        public void onSuccess(final DocumentSnapshot documentSnapshot) {
+                                        String challengesUsername = documentSnapshot.getString("challenges_username");
 
-                                            String challengesUsername = documentSnapshot.getString("challenges_username");
+                                        currentUserDocument.collection("CompletedChallenges").document(challengeDocument.getId())
+                                                .set(documentSnapshot.getData());
 
-                                            currentUserDocument.collection("CompletedChallenges").document(challengeDocument.getId())
-                                                    .set(documentSnapshot.getData());
+                                        firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                                .collection("Users").whereEqualTo("username", challengesUsername)
+                                                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                                    @Override
+                                                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                                            firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                                    .collection("Users").whereEqualTo("username", challengesUsername)
-                                                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                                        @Override
-                                                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                                        if (!queryDocumentSnapshots.isEmpty()) {
 
-                                                            if (!queryDocumentSnapshots.isEmpty()) {
+                                                            for (DocumentSnapshot documentSnapshot1 : queryDocumentSnapshots.getDocuments()) {
 
-                                                                for (DocumentSnapshot documentSnapshot1 : queryDocumentSnapshots.getDocuments()) {
-
-                                                                    firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                                                            .collection("Users").document(documentSnapshot1.getId())
-                                                                            .collection("CompletedChallenges").document(challengeDocument.getId())
-                                                                            .set(documentSnapshot.getData());
-
-                                                                }
+                                                                firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                                                        .collection("Users").document(documentSnapshot1.getId())
+                                                                        .collection("CompletedChallenges").document(challengeDocument.getId())
+                                                                        .set(documentSnapshot.getData());
 
                                                             }
 
                                                         }
-                                                    });
 
-                                        }
-                                    });
+                                                    }
+                                                });
 
-                                    if (easyNetworkMod.isNetworkAvailable()) {
-                                        mainHomeChallengesRecyclerAdapter.refresh();
-                                    } else {
-                                        noConnection.noConnection();
                                     }
+                                });
 
-                                    new Handler().postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            mainHomeChallengesRecyclerView.smoothScrollToPosition(challengePosition);
-                                        }
-                                    }, 1000);
+                                mainHomeChallengesRecyclerAdapter.refresh();
 
-                                }
-                            });
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mainHomeChallengesRecyclerView.smoothScrollToPosition(challengePosition);
+                                    }
+                                }, 1000);
 
-                } else {
-                    noConnection.noConnection();
-                }
+                            }
+                        });
 
             }
         });
@@ -540,32 +504,22 @@ public class HomeFragment extends Fragment implements MainHomeChallengesRecycler
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
-                if (easyNetworkMod.isNetworkAvailable()) {
+                challengeDocument.update("failed", true)
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
 
-                    challengeDocument.update("failed", true)
-                            .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                @Override
-                                public void onSuccess(Void aVoid) {
+                                mainHomeChallengesRecyclerAdapter.refresh();
 
-                                    if (easyNetworkMod.isNetworkAvailable()) {
-                                        mainHomeChallengesRecyclerAdapter.refresh();
-                                    } else {
-                                        noConnection.noConnection();
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mainHomeChallengesRecyclerView.smoothScrollToPosition(challengePosition);
                                     }
+                                }, 1000);
 
-                                    new Handler().postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            mainHomeChallengesRecyclerView.smoothScrollToPosition(challengePosition);
-                                        }
-                                    }, 1000);
-
-                                }
-                            });
-
-                } else {
-                    noConnection.noConnection();
-                }
+                            }
+                        });
 
             }
         });
@@ -584,16 +538,8 @@ public class HomeFragment extends Fragment implements MainHomeChallengesRecycler
         this.openCommentsBox = openCommentsBox;
     }
 
-    public void setOnNoConnection(NoConnection noConnection) {
-        this.noConnection = noConnection;
-    }
-
     public interface OpenCommentsBox {
         void onCommentClicked(String challengeID);
-    }
-
-    public interface NoConnection {
-        void noConnection();
     }
 
     @Override

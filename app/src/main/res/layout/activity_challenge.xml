@@ -342,6 +342,4 @@
 
     <include layout="@layout/challenge_comments_bottom_sheet" />
 
-    <include layout="@layout/no_connection" />
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

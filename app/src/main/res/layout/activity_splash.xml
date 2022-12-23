@@ -80,6 +80,4 @@
             app:layout_constraintTop_toBottomOf="@+id/textView15" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <include layout="@layout/no_connection" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

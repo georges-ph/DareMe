@@ -48,11 +48,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import ga.jundbits.dareme.R;
-import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class LoginActivity extends AppCompatActivity {
-
-    private ConstraintLayout noConnectionLayout;
 
     private ConstraintLayout loginConstraintLayout;
     private Toolbar loginToolbar;
@@ -74,8 +71,6 @@ public class LoginActivity extends AppCompatActivity {
     private SharedPreferences loginPreferences;
     private SharedPreferences.Editor editor;
 
-    private EasyNetworkMod easyNetworkMod;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,8 +85,6 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void initVars() {
-
-        noConnectionLayout = findViewById(R.id.no_connection_layout);
 
         loginConstraintLayout = findViewById(R.id.login_constraint_layout);
         loginToolbar = findViewById(R.id.login_toolbar);
@@ -109,8 +102,6 @@ public class LoginActivity extends AppCompatActivity {
         loginProgressDialog = new ProgressDialog(this);
 
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-
-        easyNetworkMod = new EasyNetworkMod(this);
 
         loginShowPassword.setColorFilter(Color.RED);
 
@@ -154,85 +145,68 @@ public class LoginActivity extends AppCompatActivity {
 
                 if (!TextUtils.isEmpty(emailAddress) && !TextUtils.isEmpty(password)) {
 
-                    if (easyNetworkMod.isNetworkAvailable()) {
+                    loginProgressDialog.setTitle(getString(R.string.logging_in));
+                    loginProgressDialog.setMessage(getString(R.string.please_wait_do_not_close_the_app));
+                    loginProgressDialog.setCanceledOnTouchOutside(false);
+                    loginProgressDialog.setCancelable(false);
+                    loginProgressDialog.show();
 
-                        loginProgressDialog.setTitle(getString(R.string.logging_in));
-                        loginProgressDialog.setMessage(getString(R.string.please_wait_do_not_close_the_app));
-                        loginProgressDialog.setCanceledOnTouchOutside(false);
-                        loginProgressDialog.setCancelable(false);
-                        loginProgressDialog.show();
+                    firebaseFirestore.collection("RegisteredEmails").whereEqualTo("email", emailAddress)
+                            .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                @Override
+                                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                        firebaseFirestore.collection("RegisteredEmails").whereEqualTo("email", emailAddress)
-                                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                    @Override
-                                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                    if (queryDocumentSnapshots.isEmpty()) {
 
-                                        if (queryDocumentSnapshots.isEmpty()) {
+                                        loginProgressDialog.dismiss();
 
-                                            loginProgressDialog.dismiss();
+                                        Snackbar.make(loginConstraintLayout, getString(R.string.email_is_not_registered), Snackbar.LENGTH_SHORT)
+                                                .setAction(getString(R.string.register), new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View v) {
+                                                        Intent registerIntent = new Intent(LoginActivity.this, RegisterActivity.class);
+                                                        registerIntent.putExtra("user_type", userType);
+                                                        startActivity(registerIntent);
+                                                        finish();
+                                                    }
+                                                }).show();
 
-                                            Snackbar.make(loginConstraintLayout, getString(R.string.email_is_not_registered), Snackbar.LENGTH_SHORT)
-                                                    .setAction(getString(R.string.register), new View.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(View v) {
-                                                            Intent registerIntent = new Intent(LoginActivity.this, RegisterActivity.class);
-                                                            registerIntent.putExtra("user_type", userType);
-                                                            startActivity(registerIntent);
-                                                            finish();
-                                                        }
-                                                    }).show();
+                                    } else {
 
-                                        } else {
+                                        firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                                .collection("Users").whereEqualTo("email", emailAddress)
+                                                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                                    @Override
+                                                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                                            firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                                    .collection("Users").whereEqualTo("email", emailAddress)
-                                                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                                        @Override
-                                                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                                        if (queryDocumentSnapshots.isEmpty()) {
 
-                                                            if (queryDocumentSnapshots.isEmpty()) {
+                                                            loginProgressDialog.dismiss();
 
-                                                                loginProgressDialog.dismiss();
+                                                            Snackbar.make(loginConstraintLayout, getString(R.string.app_is_not_registered), Snackbar.LENGTH_SHORT)
+                                                                    .setAction(getString(R.string.register), new View.OnClickListener() {
+                                                                        @Override
+                                                                        public void onClick(View v) {
+                                                                            Intent registerIntent = new Intent(LoginActivity.this, RegisterActivity.class);
+                                                                            registerIntent.putExtra("user_type", userType);
+                                                                            startActivity(registerIntent);
+                                                                            finish();
+                                                                        }
+                                                                    }).show();
 
-                                                                Snackbar.make(loginConstraintLayout, getString(R.string.app_is_not_registered), Snackbar.LENGTH_SHORT)
-                                                                        .setAction(getString(R.string.register), new View.OnClickListener() {
-                                                                            @Override
-                                                                            public void onClick(View v) {
-                                                                                Intent registerIntent = new Intent(LoginActivity.this, RegisterActivity.class);
-                                                                                registerIntent.putExtra("user_type", userType);
-                                                                                startActivity(registerIntent);
-                                                                                finish();
-                                                                            }
-                                                                        }).show();
+                                                        } else {
 
-                                                            } else {
-
-                                                                checkPasswordBeforeSignIn(emailAddress, password);
-
-                                                            }
+                                                            checkPasswordBeforeSignIn(emailAddress, password);
 
                                                         }
-                                                    });
 
-                                        }
+                                                    }
+                                                });
 
                                     }
-                                });
 
-                    } else {
-
-                        noConnectionLayout.setVisibility(View.VISIBLE);
-
-                        noConnectionLayout.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                if (easyNetworkMod.isNetworkAvailable()) {
-                                    noConnectionLayout.setVisibility(View.GONE);
                                 }
-                            }
-                        });
-
-                    }
+                            });
 
                 } else {
 

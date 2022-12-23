@@ -58,12 +58,9 @@ import java.util.List;
 import java.util.Map;
 
 import ga.jundbits.dareme.R;
-import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 import io.github.muddz.quickshot.QuickShot;
 
 public class ChallengeAcceptedActivity extends AppCompatActivity {
-
-    private ConstraintLayout noConnectionLayout;
 
     private Toolbar challengeAcceptedToolbar;
     private ConstraintLayout challengeAcceptedChallengeTextLayout;
@@ -93,8 +90,6 @@ public class ChallengeAcceptedActivity extends AppCompatActivity {
 
     private ProgressDialog progressDialog;
 
-    private EasyNetworkMod easyNetworkMod;
-
     private String thumbnailFileName;
 
     private File appStorageDirectory, thumbnailStorageDirectory;
@@ -112,8 +107,6 @@ public class ChallengeAcceptedActivity extends AppCompatActivity {
     }
 
     private void initVars() {
-
-        noConnectionLayout = findViewById(R.id.no_connection_layout);
 
         challengeAcceptedToolbar = findViewById(R.id.challenge_accepted_toolbar);
         challengeAcceptedChallengeTextLayout = findViewById(R.id.challenge_accepted_challenge_text_layout);
@@ -136,8 +129,6 @@ public class ChallengeAcceptedActivity extends AppCompatActivity {
         challengeStorageThumbnailReference = firebaseStorage.getReference().child(getString(R.string.app_name)).child("Thumbnails").child(challengeID).child(challengeID + ".jpg");
 
         progressDialog = new ProgressDialog(ChallengeAcceptedActivity.this);
-
-        easyNetworkMod = new EasyNetworkMod(this);
 
         appStorageDirectory = new File(Environment.getExternalStorageDirectory() + "/" + getString(R.string.app_name));
         thumbnailStorageDirectory = new File(appStorageDirectory + "/Thumbnails");
@@ -270,130 +261,124 @@ public class ChallengeAcceptedActivity extends AppCompatActivity {
 
     private void uploadVideo() {
 
-        if (easyNetworkMod.isNetworkAvailable()) {
+        progressDialog.setTitle(getString(R.string.uploading));
+        progressDialog.setMessage(getString(R.string.please_wait));
+        progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
+        progressDialog.show();
 
-            progressDialog.setTitle(getString(R.string.uploading));
-            progressDialog.setMessage(getString(R.string.please_wait));
-            progressDialog.setCancelable(false);
-            progressDialog.setCanceledOnTouchOutside(false);
-            progressDialog.show();
+        if (gotVideoThumbnail) {
 
-            if (gotVideoThumbnail) {
+            Uri videoUri = Uri.parse(String.valueOf(challengeAcceptedVideoView.getTag()));
+            File thumbnailFile = new File(thumbnailStorageDirectory + "/" + thumbnailFileName + ".jpg");
 
-                Uri videoUri = Uri.parse(String.valueOf(challengeAcceptedVideoView.getTag()));
-                File thumbnailFile = new File(thumbnailStorageDirectory + "/" + thumbnailFileName + ".jpg");
-
-                Bitmap bitmap = null;
-                try {
-                    bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Uri.fromFile(thumbnailFile));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos);
-                byte[] bytes = baos.toByteArray();
-
-                // Upload To Storage
-                UploadTask uploadTaskVideo = challengeStorageReference.putFile(videoUri);
-                final UploadTask uploadTaskThumbnail = challengeStorageThumbnailReference.putBytes(bytes);
-
-                // Get Download Url
-                Task<Uri> urlTask = uploadTaskVideo.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-                            @Override
-                            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
-
-                                if (!task.isSuccessful()) {
-                                    throw task.getException();
-                                }
-
-                                // Continue with the task to get the download URL
-                                return challengeStorageReference.getDownloadUrl();
-
-                            }
-                        })
-                        .addOnCompleteListener(new OnCompleteListener<Uri>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Uri> task) {
-
-                                if (task.isSuccessful()) {
-
-                                    Uri downloadUri = task.getResult();
-
-                                    challengeDocument.update("video_proof", downloadUri.toString())
-                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                @Override
-                                                public void onSuccess(Void aVoid) {
-
-                                                    // Get Download Url Thumb
-                                                    Task<Uri> urlTaskThumb = uploadTaskThumbnail.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-                                                                @Override
-                                                                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
-
-                                                                    if (!task.isSuccessful()) {
-                                                                        throw task.getException();
-                                                                    }
-
-                                                                    // Continue with the task to get the download URL
-                                                                    return challengeStorageThumbnailReference.getDownloadUrl();
-
-                                                                }
-                                                            })
-                                                            .addOnCompleteListener(new OnCompleteListener<Uri>() {
-                                                                @Override
-                                                                public void onComplete(@NonNull Task<Uri> task) {
-
-                                                                    if (task.isSuccessful()) {
-
-                                                                        Uri downloadUri = task.getResult();
-
-                                                                        Map<String, Object> videoMap = new HashMap<>();
-                                                                        videoMap.put("video_thumbnail", downloadUri.toString());
-                                                                        videoMap.put("accepted", true);
-
-                                                                        challengeDocument.update(videoMap)
-                                                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                                                    @Override
-                                                                                    public void onSuccess(Void aVoid) {
-
-                                                                                        progressDialog.dismiss();
-
-                                                                                        Toast.makeText(ChallengeAcceptedActivity.this, getString(R.string.upload_success), Toast.LENGTH_SHORT).show();
-
-                                                                                        Intent challengeIntent = new Intent(ChallengeAcceptedActivity.this, ChallengeActivity.class);
-                                                                                        challengeIntent.putExtra("challenge_id", challengeID);
-                                                                                        startActivity(challengeIntent);
-                                                                                        finish();
-
-                                                                                    }
-                                                                                });
-
-                                                                    } else {
-                                                                        progressDialog.dismiss();
-                                                                        Toast.makeText(ChallengeAcceptedActivity.this, getString(R.string.upload_failed), Toast.LENGTH_SHORT).show();
-                                                                    }
-
-                                                                }
-                                                            });
-
-                                                }
-                                            });
-
-                                } else {
-                                    progressDialog.dismiss();
-                                    Toast.makeText(ChallengeAcceptedActivity.this, getString(R.string.upload_failed), Toast.LENGTH_SHORT).show();
-                                }
-
-                            }
-                        });
-
-            } else {
-                progressDialog.dismiss();
-                Toast.makeText(this, getString(R.string.error_please_try_again), Toast.LENGTH_SHORT).show();
-                takVideoThumbnail();
+            Bitmap bitmap = null;
+            try {
+                bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Uri.fromFile(thumbnailFile));
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos);
+            byte[] bytes = baos.toByteArray();
+
+            // Upload To Storage
+            UploadTask uploadTaskVideo = challengeStorageReference.putFile(videoUri);
+            final UploadTask uploadTaskThumbnail = challengeStorageThumbnailReference.putBytes(bytes);
+
+            // Get Download Url
+            Task<Uri> urlTask = uploadTaskVideo.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                        @Override
+                        public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+
+                            if (!task.isSuccessful()) {
+                                throw task.getException();
+                            }
+
+                            // Continue with the task to get the download URL
+                            return challengeStorageReference.getDownloadUrl();
+
+                        }
+                    })
+                    .addOnCompleteListener(new OnCompleteListener<Uri>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Uri> task) {
+
+                            if (task.isSuccessful()) {
+
+                                Uri downloadUri = task.getResult();
+
+                                challengeDocument.update("video_proof", downloadUri.toString())
+                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+
+                                                // Get Download Url Thumb
+                                                Task<Uri> urlTaskThumb = uploadTaskThumbnail.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                                                            @Override
+                                                            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+
+                                                                if (!task.isSuccessful()) {
+                                                                    throw task.getException();
+                                                                }
+
+                                                                // Continue with the task to get the download URL
+                                                                return challengeStorageThumbnailReference.getDownloadUrl();
+
+                                                            }
+                                                        })
+                                                        .addOnCompleteListener(new OnCompleteListener<Uri>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<Uri> task) {
+
+                                                                if (task.isSuccessful()) {
+
+                                                                    Uri downloadUri = task.getResult();
+
+                                                                    Map<String, Object> videoMap = new HashMap<>();
+                                                                    videoMap.put("video_thumbnail", downloadUri.toString());
+                                                                    videoMap.put("accepted", true);
+
+                                                                    challengeDocument.update(videoMap)
+                                                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                                @Override
+                                                                                public void onSuccess(Void aVoid) {
+
+                                                                                    progressDialog.dismiss();
+
+                                                                                    Toast.makeText(ChallengeAcceptedActivity.this, getString(R.string.upload_success), Toast.LENGTH_SHORT).show();
+
+                                                                                    Intent challengeIntent = new Intent(ChallengeAcceptedActivity.this, ChallengeActivity.class);
+                                                                                    challengeIntent.putExtra("challenge_id", challengeID);
+                                                                                    startActivity(challengeIntent);
+                                                                                    finish();
+
+                                                                                }
+                                                                            });
+
+                                                                } else {
+                                                                    progressDialog.dismiss();
+                                                                    Toast.makeText(ChallengeAcceptedActivity.this, getString(R.string.upload_failed), Toast.LENGTH_SHORT).show();
+                                                                }
+
+                                                            }
+                                                        });
+
+                                            }
+                                        });
+
+                            } else {
+                                progressDialog.dismiss();
+                                Toast.makeText(ChallengeAcceptedActivity.this, getString(R.string.upload_failed), Toast.LENGTH_SHORT).show();
+                            }
+
+                        }
+                    });
 
         } else {
-            noConnectionAvailable();
+            progressDialog.dismiss();
+            Toast.makeText(this, getString(R.string.error_please_try_again), Toast.LENGTH_SHORT).show();
+            takVideoThumbnail();
         }
 
     }
@@ -404,23 +389,6 @@ public class ChallengeAcceptedActivity extends AppCompatActivity {
         intent.setType("video/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(intent, "Select Video"), VIDEO_REQUEST_CODE);
-
-    }
-
-    private void noConnectionAvailable() {
-
-        noConnectionLayout.setVisibility(View.VISIBLE);
-
-        noConnectionLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                if (easyNetworkMod.isNetworkAvailable()) {
-                    noConnectionLayout.setVisibility(View.GONE);
-                }
-
-            }
-        });
 
     }
 

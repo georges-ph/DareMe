@@ -32,11 +32,8 @@ import ga.jundbits.dareme.Activities.ChallengeActivity;
 import ga.jundbits.dareme.Adapters.AccountProfileChallengesRecyclerAdapter;
 import ga.jundbits.dareme.Models.AccountProfileChallengesModel;
 import ga.jundbits.dareme.R;
-import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class AccountFragment extends Fragment implements AccountProfileChallengesRecyclerAdapter.OnListItemClick {
-
-    private NoConnection noConnection;
 
     private SwipeRefreshLayout mainAccountSwipeRefreshLayout;
 
@@ -58,8 +55,6 @@ public class AccountFragment extends Fragment implements AccountProfileChallenge
     private String currentUserID;
 
     private DocumentReference currentUserDocument;
-
-    private EasyNetworkMod easyNetworkMod;
 
     public AccountFragment() {
 
@@ -107,129 +102,115 @@ public class AccountFragment extends Fragment implements AccountProfileChallenge
 
         currentUserDocument = firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Users").document(currentUserID);
 
-        easyNetworkMod = new EasyNetworkMod(getContext());
-
     }
 
     private void loadAccount() {
 
-        if (easyNetworkMod.isNetworkAvailable()) {
+        currentUserDocument.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
 
-            currentUserDocument.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                @Override
-                public void onSuccess(DocumentSnapshot documentSnapshot) {
+                String image = documentSnapshot.getString("image");
+                String name = documentSnapshot.getString("name");
+                String description = documentSnapshot.getString("description");
 
-                    String image = documentSnapshot.getString("image");
-                    String name = documentSnapshot.getString("name");
-                    String description = documentSnapshot.getString("description");
-
-                    // Image
-                    if (image.equals("default")) {
-                        mainAccountUserImage.setImageResource(R.mipmap.no_image);
-                    } else {
-                        Glide.with(getContext()).load(image).into(mainAccountUserImage);
-                    }
-
-                    // Name
-                    mainAccountUserName.setText(name);
-
-                    // Description
-                    if (TextUtils.isEmpty(description)) {
-                        mainAccountDescription.setVisibility(View.GONE);
-                    } else {
-                        mainAccountDescription.setVisibility(View.VISIBLE);
-                        mainAccountDescription.setText(description);
-                    }
-
-
+                // Image
+                if (image.equals("default")) {
+                    mainAccountUserImage.setImageResource(R.mipmap.no_image);
+                } else {
+                    Glide.with(getContext()).load(image).into(mainAccountUserImage);
                 }
-            });
 
-            // Challenges count and text
-            currentUserDocument.collection("CompletedChallenges")
-                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                        @Override
-                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                // Name
+                mainAccountUserName.setText(name);
 
-                            mainAccountChallengesCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
+                // Description
+                if (TextUtils.isEmpty(description)) {
+                    mainAccountDescription.setVisibility(View.GONE);
+                } else {
+                    mainAccountDescription.setVisibility(View.VISIBLE);
+                    mainAccountDescription.setText(description);
+                }
 
-                            if (queryDocumentSnapshots.size() == 1) {
-                                mainAccountChallengesText.setText(getString(R.string.challenge));
-                            } else {
 
-                                mainAccountChallengesText.setText(getString(R.string.challenges));
-
-                                if (queryDocumentSnapshots.isEmpty()) {
-                                    mainAccountNoCompletedChallengesText.setVisibility(View.VISIBLE);
-                                }
-
-                            }
-
-                        }
-                    });
-
-            // Followers count and text
-            currentUserDocument.collection("Followers")
-                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                        @Override
-                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-
-                            mainAccountFollowersCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
-
-                            if (queryDocumentSnapshots.size() == 1) {
-                                mainAccountFollowersText.setText(getString(R.string.follower));
-                            } else {
-                                mainAccountFollowersText.setText(getString(R.string.followers));
-                            }
-
-                        }
-                    });
-
-            // Likes count and text
-            currentUserDocument.collection("Likes")
-                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                        @Override
-                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-
-                            mainAccountLikesCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
-
-                            if (queryDocumentSnapshots.size() == 1) {
-                                mainAccountLikesText.setText(getString(R.string.like));
-                            } else {
-                                mainAccountLikesText.setText(getString(R.string.likes));
-                            }
-
-                        }
-                    });
-
-            // Challenges
-            Query query = currentUserDocument.collection("CompletedChallenges").orderBy("timestamp", Query.Direction.DESCENDING);
-
-            PagingConfig config = new PagingConfig(3, 5, false, 15);
-
-            FirestorePagingOptions<AccountProfileChallengesModel> options = new FirestorePagingOptions.Builder<AccountProfileChallengesModel>()
-                    .setLifecycleOwner(this)
-                    .setQuery(query, config, AccountProfileChallengesModel.class)
-                    .build();
-
-            accountProfileChallengesRecyclerAdapter = new AccountProfileChallengesRecyclerAdapter(options, this, getContext());
-
-            mainAccountChallengesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-            mainAccountChallengesRecyclerView.setHasFixedSize(true);
-            mainAccountChallengesRecyclerView.setAdapter(accountProfileChallengesRecyclerAdapter);
-
-            if (mainAccountSwipeRefreshLayout.isRefreshing()) {
-                mainAccountSwipeRefreshLayout.setRefreshing(false);
             }
+        });
 
-        } else {
+        // Challenges count and text
+        currentUserDocument.collection("CompletedChallenges")
+                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-            if (mainAccountSwipeRefreshLayout.isRefreshing()) {
-                mainAccountSwipeRefreshLayout.setRefreshing(false);
-            }
+                        mainAccountChallengesCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
 
-            noConnection.noConnection();
+                        if (queryDocumentSnapshots.size() == 1) {
+                            mainAccountChallengesText.setText(getString(R.string.challenge));
+                        } else {
 
+                            mainAccountChallengesText.setText(getString(R.string.challenges));
+
+                            if (queryDocumentSnapshots.isEmpty()) {
+                                mainAccountNoCompletedChallengesText.setVisibility(View.VISIBLE);
+                            }
+
+                        }
+
+                    }
+                });
+
+        // Followers count and text
+        currentUserDocument.collection("Followers")
+                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+
+                        mainAccountFollowersCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
+
+                        if (queryDocumentSnapshots.size() == 1) {
+                            mainAccountFollowersText.setText(getString(R.string.follower));
+                        } else {
+                            mainAccountFollowersText.setText(getString(R.string.followers));
+                        }
+
+                    }
+                });
+
+        // Likes count and text
+        currentUserDocument.collection("Likes")
+                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+
+                        mainAccountLikesCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
+
+                        if (queryDocumentSnapshots.size() == 1) {
+                            mainAccountLikesText.setText(getString(R.string.like));
+                        } else {
+                            mainAccountLikesText.setText(getString(R.string.likes));
+                        }
+
+                    }
+                });
+
+        // Challenges
+        Query query = currentUserDocument.collection("CompletedChallenges").orderBy("timestamp", Query.Direction.DESCENDING);
+
+        PagingConfig config = new PagingConfig(3, 5, false, 15);
+
+        FirestorePagingOptions<AccountProfileChallengesModel> options = new FirestorePagingOptions.Builder<AccountProfileChallengesModel>()
+                .setLifecycleOwner(this)
+                .setQuery(query, config, AccountProfileChallengesModel.class)
+                .build();
+
+        accountProfileChallengesRecyclerAdapter = new AccountProfileChallengesRecyclerAdapter(options, this, getContext());
+
+        mainAccountChallengesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        mainAccountChallengesRecyclerView.setHasFixedSize(true);
+        mainAccountChallengesRecyclerView.setAdapter(accountProfileChallengesRecyclerAdapter);
+
+        if (mainAccountSwipeRefreshLayout.isRefreshing()) {
+            mainAccountSwipeRefreshLayout.setRefreshing(false);
         }
 
     }
@@ -252,14 +233,6 @@ public class AccountFragment extends Fragment implements AccountProfileChallenge
         challengeIntent.putExtra("challenge_id", challengeID);
         getContext().startActivity(challengeIntent);
 
-    }
-
-    public void setOnNoConnection(NoConnection noConnection) {
-        this.noConnection = noConnection;
-    }
-
-    public interface NoConnection {
-        void noConnection();
     }
 
 }

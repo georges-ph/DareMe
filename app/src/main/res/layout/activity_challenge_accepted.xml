@@ -104,6 +104,4 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <include layout="@layout/no_connection" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

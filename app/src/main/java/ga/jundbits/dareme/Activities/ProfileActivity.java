@@ -10,7 +10,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.paging.PagingConfig;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -29,11 +28,8 @@ import de.hdodenhof.circleimageview.CircleImageView;
 import ga.jundbits.dareme.Adapters.AccountProfileChallengesRecyclerAdapter;
 import ga.jundbits.dareme.Models.AccountProfileChallengesModel;
 import ga.jundbits.dareme.R;
-import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class ProfileActivity extends AppCompatActivity implements AccountProfileChallengesRecyclerAdapter.OnListItemClick {
-
-    private ConstraintLayout noConnectionLayout;
 
     private Toolbar profileToolbar;
     private SwipeRefreshLayout profileSwipeRefreshLayout;
@@ -54,8 +50,6 @@ public class ProfileActivity extends AppCompatActivity implements AccountProfile
     private FirebaseFirestore firebaseFirestore;
     private DocumentReference userDocument;
 
-    private EasyNetworkMod easyNetworkMod;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,8 +63,6 @@ public class ProfileActivity extends AppCompatActivity implements AccountProfile
     }
 
     private void initVars() {
-
-        noConnectionLayout = findViewById(R.id.no_connection_layout);
 
         profileToolbar = findViewById(R.id.profile_toolbar);
         profileSwipeRefreshLayout = findViewById(R.id.profile_swipe_refresh_layout);
@@ -95,8 +87,6 @@ public class ProfileActivity extends AppCompatActivity implements AccountProfile
         firebaseFirestore = FirebaseFirestore.getInstance();
         userDocument = firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Users").document(userID);
 
-        easyNetworkMod = new EasyNetworkMod(this);
-
     }
 
     private void setupToolbar() {
@@ -108,120 +98,114 @@ public class ProfileActivity extends AppCompatActivity implements AccountProfile
 
     private void loadProfile() {
 
-        if (easyNetworkMod.isNetworkAvailable()) {
+        userDocument.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
 
-            userDocument.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                @Override
-                public void onSuccess(DocumentSnapshot documentSnapshot) {
+                String username = documentSnapshot.getString("username");
+                String image = documentSnapshot.getString("image");
+                String name = documentSnapshot.getString("name");
+                String description = documentSnapshot.getString("description");
 
-                    String username = documentSnapshot.getString("username");
-                    String image = documentSnapshot.getString("image");
-                    String name = documentSnapshot.getString("name");
-                    String description = documentSnapshot.getString("description");
+                // Username
+                getSupportActionBar().setTitle(username);
 
-                    // Username
-                    getSupportActionBar().setTitle(username);
-
-                    // Image
-                    if (image.equals("default")) {
-                        profileUserImage.setImageResource(R.mipmap.no_image);
-                    } else {
-                        Glide.with(ProfileActivity.this).load(image).into(profileUserImage);
-                    }
-
-                    // Name
-                    profileUserName.setText(name);
-
-                    // Description
-                    if (TextUtils.isEmpty(description)) {
-                        profileDescription.setVisibility(View.GONE);
-                    } else {
-                        profileDescription.setVisibility(View.VISIBLE);
-                        profileDescription.setText(description);
-                    }
-
+                // Image
+                if (image.equals("default")) {
+                    profileUserImage.setImageResource(R.mipmap.no_image);
+                } else {
+                    Glide.with(ProfileActivity.this).load(image).into(profileUserImage);
                 }
-            });
 
-            // Challenges count and text
-            userDocument.collection("CompletedChallenges")
-                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                        @Override
-                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                // Name
+                profileUserName.setText(name);
 
-                            profileChallengesCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
+                // Description
+                if (TextUtils.isEmpty(description)) {
+                    profileDescription.setVisibility(View.GONE);
+                } else {
+                    profileDescription.setVisibility(View.VISIBLE);
+                    profileDescription.setText(description);
+                }
 
-                            if (queryDocumentSnapshots.size() == 1) {
-                                profileChallengesText.setText(getString(R.string.challenge));
-                            } else {
-
-                                profileChallengesText.setText(getString(R.string.challenges));
-
-                                if (queryDocumentSnapshots.isEmpty()) {
-                                    profileNoCompletedChallengesText.setVisibility(View.VISIBLE);
-                                }
-
-                            }
-
-                        }
-                    });
-
-            // Followers count and text
-            userDocument.collection("Followers")
-                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                        @Override
-                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-
-                            profileFollowersCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
-
-                            if (queryDocumentSnapshots.size() == 1) {
-                                profileFollowersText.setText(getString(R.string.follower));
-                            } else {
-                                profileFollowersText.setText(getString(R.string.followers));
-                            }
-
-                        }
-                    });
-
-            // Likes count and text
-            userDocument.collection("Likes")
-                    .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                        @Override
-                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-
-                            profileLikesCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
-
-                            if (queryDocumentSnapshots.size() == 1) {
-                                profileLikesText.setText(getString(R.string.like));
-                            } else {
-                                profileLikesText.setText(getString(R.string.likes));
-                            }
-
-                        }
-                    });
-
-            // Challenges
-            Query query = userDocument.collection("CompletedChallenges").orderBy("timestamp", Query.Direction.DESCENDING);
-
-            PagingConfig config = new PagingConfig(3, 5, false, 15);
-
-            FirestorePagingOptions<AccountProfileChallengesModel> options = new FirestorePagingOptions.Builder<AccountProfileChallengesModel>()
-                    .setLifecycleOwner(this)
-                    .setQuery(query, config, AccountProfileChallengesModel.class)
-                    .build();
-
-            profileChallengesRecyclerAdapter = new AccountProfileChallengesRecyclerAdapter(options, this, this);
-
-            profileChallengesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-            profileChallengesRecyclerView.setHasFixedSize(true);
-            profileChallengesRecyclerView.setAdapter(profileChallengesRecyclerAdapter);
-
-            if (profileSwipeRefreshLayout.isRefreshing()) {
-                profileSwipeRefreshLayout.setRefreshing(false);
             }
+        });
 
-        } else {
-            noConnectionAvailable();
+        // Challenges count and text
+        userDocument.collection("CompletedChallenges")
+                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+
+                        profileChallengesCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
+
+                        if (queryDocumentSnapshots.size() == 1) {
+                            profileChallengesText.setText(getString(R.string.challenge));
+                        } else {
+
+                            profileChallengesText.setText(getString(R.string.challenges));
+
+                            if (queryDocumentSnapshots.isEmpty()) {
+                                profileNoCompletedChallengesText.setVisibility(View.VISIBLE);
+                            }
+
+                        }
+
+                    }
+                });
+
+        // Followers count and text
+        userDocument.collection("Followers")
+                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+
+                        profileFollowersCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
+
+                        if (queryDocumentSnapshots.size() == 1) {
+                            profileFollowersText.setText(getString(R.string.follower));
+                        } else {
+                            profileFollowersText.setText(getString(R.string.followers));
+                        }
+
+                    }
+                });
+
+        // Likes count and text
+        userDocument.collection("Likes")
+                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+
+                        profileLikesCounter.setText(String.valueOf(queryDocumentSnapshots.size()));
+
+                        if (queryDocumentSnapshots.size() == 1) {
+                            profileLikesText.setText(getString(R.string.like));
+                        } else {
+                            profileLikesText.setText(getString(R.string.likes));
+                        }
+
+                    }
+                });
+
+        // Challenges
+        Query query = userDocument.collection("CompletedChallenges").orderBy("timestamp", Query.Direction.DESCENDING);
+
+        PagingConfig config = new PagingConfig(3, 5, false, 15);
+
+        FirestorePagingOptions<AccountProfileChallengesModel> options = new FirestorePagingOptions.Builder<AccountProfileChallengesModel>()
+                .setLifecycleOwner(this)
+                .setQuery(query, config, AccountProfileChallengesModel.class)
+                .build();
+
+        profileChallengesRecyclerAdapter = new AccountProfileChallengesRecyclerAdapter(options, this, this);
+
+        profileChallengesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        profileChallengesRecyclerView.setHasFixedSize(true);
+        profileChallengesRecyclerView.setAdapter(profileChallengesRecyclerAdapter);
+
+        if (profileSwipeRefreshLayout.isRefreshing()) {
+            profileSwipeRefreshLayout.setRefreshing(false);
         }
 
     }
@@ -232,23 +216,6 @@ public class ProfileActivity extends AppCompatActivity implements AccountProfile
             @Override
             public void onRefresh() {
                 loadProfile();
-            }
-        });
-
-    }
-
-    private void noConnectionAvailable() {
-
-        noConnectionLayout.setVisibility(View.VISIBLE);
-
-        noConnectionLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                if (easyNetworkMod.isNetworkAvailable()) {
-                    noConnectionLayout.setVisibility(View.GONE);
-                }
-
             }
         });
 

@@ -50,11 +50,8 @@ import java.util.concurrent.TimeUnit;
 import ga.jundbits.dareme.Adapters.NewChallengePlayersRecyclerAdapter;
 import ga.jundbits.dareme.Models.NewChallengePlayersModel;
 import ga.jundbits.dareme.R;
-import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class NewChallengeActivity extends AppCompatActivity implements NewChallengePlayersRecyclerAdapter.ListItemButtonClick /* implements NewChallengePlayersRecyclerAdapter.ListItemButtonClick */ {
-
-    private ConstraintLayout noConnectionLayout;
 
     private ConstraintLayout newChallengeConstraintLayout;
     private Toolbar newChallengeToolbar;
@@ -82,8 +79,6 @@ public class NewChallengeActivity extends AppCompatActivity implements NewChalle
 
     private ProgressDialog progressDialog;
 
-    private EasyNetworkMod easyNetworkMod;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,8 +94,6 @@ public class NewChallengeActivity extends AppCompatActivity implements NewChalle
     }
 
     private void initVars() {
-
-        noConnectionLayout = findViewById(R.id.no_connection_layout);
 
         newChallengeConstraintLayout = findViewById(R.id.new_challenge_constraint_layout);
         newChallengeToolbar = findViewById(R.id.new_challenge_toolbar);
@@ -121,8 +114,6 @@ public class NewChallengeActivity extends AppCompatActivity implements NewChalle
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         progressDialog = new ProgressDialog(NewChallengeActivity.this);
-
-        easyNetworkMod = new EasyNetworkMod(this);
 
         newChallengePlayersModelList = new ArrayList<>();
 
@@ -193,75 +184,69 @@ public class NewChallengeActivity extends AppCompatActivity implements NewChalle
 
                 if (!TextUtils.isEmpty(playerUsername) && !TextUtils.isEmpty(description) && !TextUtils.isEmpty(prize)) {
 
-                    if (easyNetworkMod.isNetworkAvailable()) {
+                    if (playerUsernameAvailable) {
 
-                        if (playerUsernameAvailable) {
+                        progressDialog.setMessage(getString(R.string.please_wait));
+                        progressDialog.setCancelable(false);
+                        progressDialog.setCanceledOnTouchOutside(false);
+                        progressDialog.show();
 
-                            progressDialog.setMessage(getString(R.string.please_wait));
-                            progressDialog.setCancelable(false);
-                            progressDialog.setCanceledOnTouchOutside(false);
-                            progressDialog.show();
+                        String[] array = getResources().getStringArray(R.array.colors);
+                        String randomColor = array[new Random().nextInt(array.length)];
 
-                            String[] array = getResources().getStringArray(R.array.colors);
-                            String randomColor = array[new Random().nextInt(array.length)];
+                        Timestamp timestamp = Timestamp.now();
 
-                            Timestamp timestamp = Timestamp.now();
+                        long timestampSeconds = timestamp.getSeconds();
+                        long timestampNanoSeconds = timestamp.getNanoseconds();
+                        long timestampSecondsToMillis = TimeUnit.SECONDS.toMillis(timestampSeconds);
+                        long timestampNanoSecondsToMillis = TimeUnit.NANOSECONDS.toMillis(timestampNanoSeconds);
+                        long timestampTotalMillis = timestampSecondsToMillis + timestampNanoSecondsToMillis;
 
-                            long timestampSeconds = timestamp.getSeconds();
-                            long timestampNanoSeconds = timestamp.getNanoseconds();
-                            long timestampSecondsToMillis = TimeUnit.SECONDS.toMillis(timestampSeconds);
-                            long timestampNanoSecondsToMillis = TimeUnit.NANOSECONDS.toMillis(timestampNanoSeconds);
-                            long timestampTotalMillis = timestampSecondsToMillis + timestampNanoSecondsToMillis;
+                        Map<String, Object> challengeMap = new HashMap<>();
+                        challengeMap.put("image", currentUserImage);
+                        challengeMap.put("username", currentUserUsername);
+                        challengeMap.put("challenges_username", playerUsername);
+                        challengeMap.put("color", randomColor);
+                        challengeMap.put("text", description);
+                        challengeMap.put("prize", prize);
+                        challengeMap.put("user_id", currentUserID);
+                        challengeMap.put("player_user_id", playerUserID);
+                        challengeMap.put("timestamp", FieldValue.serverTimestamp());
+                        challengeMap.put("date_time_millis", timestampTotalMillis);
+                        challengeMap.put("accepted", false);
+                        challengeMap.put("completed", false);
+                        challengeMap.put("failed", false);
+                        challengeMap.put("video_thumbnail", null);
+                        challengeMap.put("video_proof", null);
 
-                            Map<String, Object> challengeMap = new HashMap<>();
-                            challengeMap.put("image", currentUserImage);
-                            challengeMap.put("username", currentUserUsername);
-                            challengeMap.put("challenges_username", playerUsername);
-                            challengeMap.put("color", randomColor);
-                            challengeMap.put("text", description);
-                            challengeMap.put("prize", prize);
-                            challengeMap.put("user_id", currentUserID);
-                            challengeMap.put("player_user_id", playerUserID);
-                            challengeMap.put("timestamp", FieldValue.serverTimestamp());
-                            challengeMap.put("date_time_millis", timestampTotalMillis);
-                            challengeMap.put("accepted", false);
-                            challengeMap.put("completed", false);
-                            challengeMap.put("failed", false);
-                            challengeMap.put("video_thumbnail", null);
-                            challengeMap.put("video_proof", null);
+                        firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                .collection("Challenges")
+                                .add(challengeMap)
+                                .addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<DocumentReference> task) {
 
-                            firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                    .collection("Challenges")
-                                    .add(challengeMap)
-                                    .addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<DocumentReference> task) {
+                                        if (task.isSuccessful()) {
 
-                                            if (task.isSuccessful()) {
+                                            progressDialog.dismiss();
 
-                                                progressDialog.dismiss();
+                                            Toast.makeText(NewChallengeActivity.this, "Challenge added successfully", Toast.LENGTH_SHORT).show();
 
-                                                Toast.makeText(NewChallengeActivity.this, "Challenge added successfully", Toast.LENGTH_SHORT).show();
+                                            Intent challengeIntent = new Intent(NewChallengeActivity.this, ChallengeActivity.class);
+                                            challengeIntent.putExtra("challenge_id", task.getResult().getId());
+                                            startActivity(challengeIntent);
+                                            finish();
 
-                                                Intent challengeIntent = new Intent(NewChallengeActivity.this, ChallengeActivity.class);
-                                                challengeIntent.putExtra("challenge_id", task.getResult().getId());
-                                                startActivity(challengeIntent);
-                                                finish();
-
-                                            } else {
-                                                progressDialog.dismiss();
-                                                showError(task.getException().getMessage());
-                                            }
-
+                                        } else {
+                                            progressDialog.dismiss();
+                                            showError(task.getException().getMessage());
                                         }
-                                    });
 
-                        } else {
-                            showError(getString(R.string.username_not_found));
-                        }
+                                    }
+                                });
 
                     } else {
-                        noConnectionAvailable();
+                        showError(getString(R.string.username_not_found));
                     }
 
                 } else {
@@ -349,23 +334,6 @@ public class NewChallengeActivity extends AppCompatActivity implements NewChalle
         newChallengePlayerUsername.setText(username);
         newChallengePlayersRecyclerView.setVisibility(View.GONE);
         checkPlayerUsername(username);
-    }
-
-    private void noConnectionAvailable() {
-
-        noConnectionLayout.setVisibility(View.VISIBLE);
-
-        noConnectionLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                if (easyNetworkMod.isNetworkAvailable()) {
-                    noConnectionLayout.setVisibility(View.GONE);
-                }
-
-            }
-        });
-
     }
 
     @Override

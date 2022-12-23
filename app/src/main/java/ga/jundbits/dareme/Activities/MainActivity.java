@@ -53,14 +53,11 @@ import ga.jundbits.dareme.Fragments.HomeFragment;
 import ga.jundbits.dareme.Fragments.MyChallengesFragment;
 import ga.jundbits.dareme.Models.ChallengeCommentsBottomSheetModel;
 import ga.jundbits.dareme.R;
-import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
-public class MainActivity extends AppCompatActivity implements HomeFragment.OpenCommentsBox, HomeFragment.NoConnection, MyChallengesFragment.NoConnection, AccountFragment.NoConnection {
+public class MainActivity extends AppCompatActivity implements HomeFragment.OpenCommentsBox {
 
     private String userType;
     private String challengeID;
-
-    private ConstraintLayout noConnectionLayout;
 
     private Toolbar mainToolbar;
     private BottomNavigationView mainBottomNavigationView;
@@ -96,8 +93,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
 
     private DocumentReference currentUserDocument;
 
-    private EasyNetworkMod easyNetworkMod;
-
     private boolean doubleBackToExit = false;
 
     @Override
@@ -117,8 +112,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
 
         userType = getIntent().getExtras().getString("user_type");
         challengeID = getIntent().getExtras().getString("challenge_id");
-
-        noConnectionLayout = findViewById(R.id.no_connection_layout);
 
         mainToolbar = findViewById(R.id.main_toolbar);
         mainBottomNavigationView = findViewById(R.id.main_bottom_navigation_view);
@@ -147,8 +140,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
 
         currentUserID = firebaseUser.getUid();
         currentUserDocument = firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Users").document(currentUserID);
-
-        easyNetworkMod = new EasyNetworkMod(this);
 
     }
 
@@ -248,58 +239,52 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
             @Override
             public void onClick(View v) {
 
-                if (easyNetworkMod.isNetworkAvailable()) {
+                final String comment = commentsBottomSheetCommentEditText.getText().toString().trim();
 
-                    final String comment = commentsBottomSheetCommentEditText.getText().toString().trim();
+                commentsBottomSheetCommentEditText.getText().clear();
 
-                    commentsBottomSheetCommentEditText.getText().clear();
+                currentUserDocument.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
 
-                    currentUserDocument.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                        @Override
-                        public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        String currentUserUsername = documentSnapshot.getString("username");
+                        String currentUserImage = documentSnapshot.getString("image");
 
-                            String currentUserUsername = documentSnapshot.getString("username");
-                            String currentUserImage = documentSnapshot.getString("image");
+                        Timestamp timestamp = Timestamp.now();
 
-                            Timestamp timestamp = Timestamp.now();
+                        long timestampSeconds = timestamp.getSeconds();
+                        long timestampNanoSeconds = timestamp.getNanoseconds();
+                        long timestampSecondsToMillis = TimeUnit.SECONDS.toMillis(timestampSeconds);
+                        long timestampNanoSecondsToMillis = TimeUnit.NANOSECONDS.toMillis(timestampNanoSeconds);
+                        long timestampTotalMillis = timestampSecondsToMillis + timestampNanoSecondsToMillis;
 
-                            long timestampSeconds = timestamp.getSeconds();
-                            long timestampNanoSeconds = timestamp.getNanoseconds();
-                            long timestampSecondsToMillis = TimeUnit.SECONDS.toMillis(timestampSeconds);
-                            long timestampNanoSecondsToMillis = TimeUnit.NANOSECONDS.toMillis(timestampNanoSeconds);
-                            long timestampTotalMillis = timestampSecondsToMillis + timestampNanoSecondsToMillis;
+                        Map<String, Object> commentMap = new HashMap<>();
+                        commentMap.put("comment", comment);
+                        commentMap.put("user_id", currentUserID);
+                        commentMap.put("username", currentUserUsername);
+                        commentMap.put("image", currentUserImage);
+                        commentMap.put("timestamp", FieldValue.serverTimestamp());
+                        commentMap.put("date_time_millis", timestampTotalMillis);
 
-                            Map<String, Object> commentMap = new HashMap<>();
-                            commentMap.put("comment", comment);
-                            commentMap.put("user_id", currentUserID);
-                            commentMap.put("username", currentUserUsername);
-                            commentMap.put("image", currentUserImage);
-                            commentMap.put("timestamp", FieldValue.serverTimestamp());
-                            commentMap.put("date_time_millis", timestampTotalMillis);
+                        firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
+                                .collection("Challenges").document(challengeID)
+                                .collection("Comments")
+                                .add(commentMap)
+                                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                    @Override
+                                    public void onSuccess(DocumentReference documentReference) {
+                                        commentsRecyclerView.smoothScrollToPosition(0);
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Toast.makeText(MainActivity.this, getString(R.string.error_please_try_again_later), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
 
-                            firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                    .collection("Challenges").document(challengeID)
-                                    .collection("Comments")
-                                    .add(commentMap)
-                                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                        @Override
-                                        public void onSuccess(DocumentReference documentReference) {
-                                            commentsRecyclerView.smoothScrollToPosition(0);
-                                        }
-                                    })
-                                    .addOnFailureListener(new OnFailureListener() {
-                                        @Override
-                                        public void onFailure(@NonNull Exception e) {
-                                            Toast.makeText(MainActivity.this, getString(R.string.error_please_try_again_later), Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
-
-                        }
-                    });
-
-                } else {
-                    noConnection();
-                }
+                    }
+                });
 
             }
         });
@@ -382,18 +367,15 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
         if (fragment instanceof HomeFragment) {
             HomeFragment homeFragment = (HomeFragment) fragment;
             homeFragment.setOnCommentsOpened(this);
-            homeFragment.setOnNoConnection(this);
         }
 
         if (fragment instanceof MyChallengesFragment) {
             MyChallengesFragment myChallengesFragment = (MyChallengesFragment) fragment;
-            myChallengesFragment.setOnNoConnection(this);
         }
 
         if (fragment instanceof AccountFragment) {
             AccountFragment accountFragment = (AccountFragment) fragment;
-            accountFragment.setOnNoConnection(this);
-        }
+         }
 
     }
 
@@ -430,35 +412,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
             }, 2000);
 
         }
-
-    }
-
-    @Override
-    public void noConnection() {
-
-        noConnectionLayout.setVisibility(View.VISIBLE);
-
-        noConnectionLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Toast.makeText(MainActivity.this, getString(R.string.connecting), Toast.LENGTH_SHORT).show();
-
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        if (easyNetworkMod.isNetworkAvailable()) {
-                            noConnectionLayout.setVisibility(View.GONE);
-                        } else {
-                            Toast.makeText(MainActivity.this, getString(R.string.connection_failed), Toast.LENGTH_SHORT).show();
-                        }
-
-                    }
-                }, 2000);
-
-            }
-        });
 
     }
 

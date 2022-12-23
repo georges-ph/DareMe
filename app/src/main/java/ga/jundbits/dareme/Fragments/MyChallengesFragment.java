@@ -29,11 +29,8 @@ import ga.jundbits.dareme.Activities.NewChallengeActivity;
 import ga.jundbits.dareme.Adapters.MyChallengesProfileChallengesRecyclerAdapter;
 import ga.jundbits.dareme.Models.MyChallengesProfileChallengesModel;
 import ga.jundbits.dareme.R;
-import github.nisrulz.easydeviceinfo.base.EasyNetworkMod;
 
 public class MyChallengesFragment extends Fragment implements MyChallengesProfileChallengesRecyclerAdapter.ListItemButtonClick {
-
-    private NoConnection noConnection;
 
     private SwipeRefreshLayout myChallengesSwipeRefreshLayout;
     private TextView myChallengesYouChallengedText;
@@ -50,8 +47,6 @@ public class MyChallengesFragment extends Fragment implements MyChallengesProfil
     private String currentUserType;
 
     private DocumentReference currentUserDocument;
-
-    private EasyNetworkMod easyNetworkMod;
 
     public MyChallengesFragment() {
 
@@ -88,8 +83,6 @@ public class MyChallengesFragment extends Fragment implements MyChallengesProfil
 
         currentUserDocument = firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Users").document(currentUserID);
 
-        easyNetworkMod = new EasyNetworkMod(getContext());
-
     }
 
     private void loadMyChallenges() {
@@ -102,64 +95,52 @@ public class MyChallengesFragment extends Fragment implements MyChallengesProfil
 
         Query query = null;
 
-        if (easyNetworkMod.isNetworkAvailable()) {
+        if (currentUserType.equals("player")) {
+            query = firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Challenges").whereEqualTo("player_user_id", currentUserID);
+        } else if (currentUserType.equals("watcher")) {
+            query = firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Challenges").whereEqualTo("user_id", currentUserID);
+        }
 
-            if (currentUserType.equals("player")) {
-                query = firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Challenges").whereEqualTo("player_user_id", currentUserID);
-            } else if (currentUserType.equals("watcher")) {
-                query = firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Challenges").whereEqualTo("user_id", currentUserID);
-            }
+        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-            query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                @Override
-                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                if (queryDocumentSnapshots.isEmpty()) {
 
-                    if (queryDocumentSnapshots.isEmpty()) {
+                    if (currentUserType.equals("player")) {
+                        myChallengesYouChallengedText.setText(getContext().getString(R.string.you_havent_been_challenged_by_anyone));
+                    } else if (currentUserType.equals("watcher")) {
+                        myChallengesYouChallengedText.setText(getContext().getString(R.string.you_havent_challenged_anyone));
+                    }
 
-                        if (currentUserType.equals("player")) {
-                            myChallengesYouChallengedText.setText(getContext().getString(R.string.you_havent_been_challenged_by_anyone));
-                        } else if (currentUserType.equals("watcher")) {
-                            myChallengesYouChallengedText.setText(getContext().getString(R.string.you_havent_challenged_anyone));
-                        }
+                } else {
 
-                    } else {
-
-                        if (currentUserType.equals("player")) {
-                            myChallengesYouChallengedText.setText(getContext().getString(R.string.you_have_been_challenged_by));
-                        } else if (currentUserType.equals("watcher")) {
-                            myChallengesYouChallengedText.setText(getContext().getString(R.string.you_have_challenged));
-                        }
-
+                    if (currentUserType.equals("player")) {
+                        myChallengesYouChallengedText.setText(getContext().getString(R.string.you_have_been_challenged_by));
+                    } else if (currentUserType.equals("watcher")) {
+                        myChallengesYouChallengedText.setText(getContext().getString(R.string.you_have_challenged));
                     }
 
                 }
-            });
 
-            PagingConfig config = new PagingConfig(3, 5, false, 15);
-
-            FirestorePagingOptions<MyChallengesProfileChallengesModel> options = new FirestorePagingOptions.Builder<MyChallengesProfileChallengesModel>()
-                    .setLifecycleOwner(this)
-                    .setQuery(query, config, MyChallengesProfileChallengesModel.class)
-                    .build();
-
-            myChallengesProfileChallengesRecyclerAdapter = new MyChallengesProfileChallengesRecyclerAdapter(options, getContext(), this);
-
-            myChallengesChallengesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-            myChallengesChallengesRecyclerView.setHasFixedSize(true);
-            myChallengesChallengesRecyclerView.setAdapter(myChallengesProfileChallengesRecyclerAdapter);
-
-            if (myChallengesSwipeRefreshLayout.isRefreshing()) {
-                myChallengesSwipeRefreshLayout.setRefreshing(false);
             }
+        });
 
-        } else {
+        PagingConfig config = new PagingConfig(3, 5, false, 15);
 
-            if (myChallengesSwipeRefreshLayout.isRefreshing()) {
-                myChallengesSwipeRefreshLayout.setRefreshing(false);
-            }
+        FirestorePagingOptions<MyChallengesProfileChallengesModel> options = new FirestorePagingOptions.Builder<MyChallengesProfileChallengesModel>()
+                .setLifecycleOwner(this)
+                .setQuery(query, config, MyChallengesProfileChallengesModel.class)
+                .build();
 
-            noConnection.noConnection();
+        myChallengesProfileChallengesRecyclerAdapter = new MyChallengesProfileChallengesRecyclerAdapter(options, getContext(), this);
 
+        myChallengesChallengesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        myChallengesChallengesRecyclerView.setHasFixedSize(true);
+        myChallengesChallengesRecyclerView.setAdapter(myChallengesProfileChallengesRecyclerAdapter);
+
+        if (myChallengesSwipeRefreshLayout.isRefreshing()) {
+            myChallengesSwipeRefreshLayout.setRefreshing(false);
         }
 
     }
@@ -185,17 +166,9 @@ public class MyChallengesFragment extends Fragment implements MyChallengesProfil
 
     }
 
-    public void setOnNoConnection(NoConnection noConnection) {
-        this.noConnection = noConnection;
-    }
-
     @Override
     public void onListItemButtonClick(String buttonName, String username, String challengeID, int challengePosition) {
 
-    }
-
-    public interface NoConnection {
-        void noConnection();
     }
 
 }

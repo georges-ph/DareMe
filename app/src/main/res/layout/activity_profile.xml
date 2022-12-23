@@ -248,6 +248,4 @@
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <include layout="@layout/no_connection" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
