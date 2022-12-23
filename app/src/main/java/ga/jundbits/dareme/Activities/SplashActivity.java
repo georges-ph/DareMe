@@ -111,7 +111,16 @@ public class SplashActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        getUserToken();
+        FirebaseMessaging.getInstance()
+                .getToken()
+                .addOnSuccessListener(this, new OnSuccessListener<String>() {
+                    @Override
+                    public void onSuccess(String token) {
+
+                        userToken = token;
+
+                    }
+                });
 
         firebaseFirestore.collection("Devices").document(deviceID)
                 .addSnapshotListener(SplashActivity.this, new EventListener<DocumentSnapshot>() {
@@ -252,7 +261,7 @@ public class SplashActivity extends AppCompatActivity {
             challengeID = getIntent().getStringExtra("challenge_id");
         }
 
-        currentUserDocument.update("token_id", userToken);
+        currentUserDocument.update("fcm_token", userToken);
 
         currentUserDocument.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
@@ -315,23 +324,6 @@ public class SplashActivity extends AppCompatActivity {
 
             }
         });
-
-    }
-
-    public String getUserToken() {
-
-        FirebaseMessaging.getInstance()
-                .getToken()
-                .addOnSuccessListener(this, new OnSuccessListener<String>() {
-                    @Override
-                    public void onSuccess(String token) {
-
-                        userToken = token;
-
-                    }
-                });
-
-        return userToken;
 
     }
 

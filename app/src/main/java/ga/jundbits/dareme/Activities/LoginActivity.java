@@ -79,7 +79,6 @@ public class LoginActivity extends AppCompatActivity {
         initVars();
         setupToolbar();
         loadInputsData();
-        getUserToken();
         setOnClicks();
 
     }
@@ -478,23 +477,6 @@ public class LoginActivity extends AppCompatActivity {
 
         loginEmailAddress.setText(email);
         loginPassword.setText(password);
-
-    }
-
-    public String getUserToken() {
-
-        FirebaseMessaging.getInstance()
-                .getToken()
-                .addOnSuccessListener(this, new OnSuccessListener<String>() {
-                    @Override
-                    public void onSuccess(String token) {
-
-                        userToken = token;
-
-                    }
-                });
-
-        return userToken;
 
     }
 

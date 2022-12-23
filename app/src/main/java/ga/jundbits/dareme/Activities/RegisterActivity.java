@@ -84,7 +84,6 @@ public class RegisterActivity extends AppCompatActivity {
         setupToolbar();
         loadData();
         loadInputsData();
-        getUserToken();
         setOnClicks();
 
     }
@@ -399,23 +398,6 @@ public class RegisterActivity extends AppCompatActivity {
         registerEmailAddress.setText(email);
         registerPassword.setText(password);
         registerConfirmPassword.setText(confirmPassword);
-
-    }
-
-    public String getUserToken() {
-
-        FirebaseMessaging.getInstance()
-                .getToken()
-                .addOnSuccessListener(this, new OnSuccessListener<String>() {
-                    @Override
-                    public void onSuccess(String token) {
-
-                        userToken = token;
-
-                    }
-                });
-
-        return userToken;
 
     }
 

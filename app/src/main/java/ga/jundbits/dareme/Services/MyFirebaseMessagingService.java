@@ -3,30 +3,49 @@ package ga.jundbits.dareme.Services;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.os.Bundle;
+import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import ga.jundbits.dareme.R;
+import ga.jundbits.dareme.Utils.HelperMethods;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
+
+    private NotificationManagerCompat notificationManager;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        notificationManager = NotificationManagerCompat.from(this);
+    }
 
     @Override
     public void onNewToken(@NonNull String token) {
         super.onNewToken(token);
-        saveToken(token);
+
+        FirebaseAuth.getInstance()
+                .addAuthStateListener(firebaseAuth -> {
+
+                    if (firebaseAuth.getCurrentUser() != null)
+                        saveToken(token);
+
+                });
+
+    }
+
+    private void saveToken(String token) {
+
+        HelperMethods
+                .userDocumentRef(getApplicationContext(), HelperMethods.getCurrentUserID())
+                .update("fcm_token", token); // TODO: 23-Dec-22 may need to change how to update document
+
     }
 
     @Override
@@ -35,46 +54,28 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         String title = remoteMessage.getNotification().getTitle();
         String body = remoteMessage.getNotification().getBody();
-        String click_action = remoteMessage.getNotification().getClickAction();
+        String click_action = remoteMessage.getNotification().getClickAction(); // TODO: 23-Dec-22 i think i have to remove this
+        long challengeID = Long.parseLong(remoteMessage.getData().get("challenge_id"));
 
-        String challengeID = remoteMessage.getData().get("challenge_id");
+        int flags = PendingIntent.FLAG_ONE_SHOT;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            flags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
+        }
 
         Intent intent = new Intent(click_action);
         intent.putExtra("challenge_id", challengeID);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, flags);
 
         Notification notification = new NotificationCompat.Builder(this, getString(R.string.app_name))
                 .setSmallIcon(R.drawable.ic_dare_me_notification)
                 .setContentTitle(title)
                 .setContentText(body)
                 .setContentIntent(pendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)
                 .build();
 
-        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
-
-        notificationManagerCompat.notify((int) System.currentTimeMillis(), notification);
-
-    }
-
-    private void saveToken(String token) {
-
-        FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
-        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-
-        if (firebaseUser != null) {
-
-            String currentUserID = firebaseUser.getUid();
-
-            Map<String, Object> tokenMap = new HashMap<>();
-            tokenMap.put("token_id", token);
-
-            firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                    .collection("Users").document(currentUserID)
-                    .set(tokenMap, SetOptions.merge());
-
-        }
+        notificationManager.notify((int) challengeID, notification);
 
     }
 
