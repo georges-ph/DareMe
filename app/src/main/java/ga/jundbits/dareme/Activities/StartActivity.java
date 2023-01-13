@@ -67,7 +67,6 @@ public class StartActivity extends AppCompatActivity {
         Intent registerIntent = new Intent(StartActivity.this, RegisterActivity.class);
         registerIntent.putExtra("user_type", userType);
         startActivity(registerIntent);
-        finish();
 
     }
 
