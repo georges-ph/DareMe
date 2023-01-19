@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.os.Vibrator;
 import android.text.TextUtils;
 import android.text.method.PasswordTransformationMethod;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -28,7 +27,6 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -50,8 +48,6 @@ public class RegisterActivity extends AppCompatActivity {
 
     private FirebaseAuth firebaseAuth;
 
-    private String userType;
-
     private Vibrator vibrator;
 
     private ProgressDialog registerProgressDialog;
@@ -66,7 +62,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         initVars();
         setupToolbar();
-        loadData();
+        loadUserType();
         loadInputsData();
         setOnClicks();
 
@@ -88,8 +84,6 @@ public class RegisterActivity extends AppCompatActivity {
 
         firebaseAuth = FirebaseAuth.getInstance();
 
-        userType = getIntent().getStringExtra("user_type");
-
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         registerProgressDialog = new ProgressDialog(RegisterActivity.this);
@@ -110,12 +104,18 @@ public class RegisterActivity extends AppCompatActivity {
 
     }
 
-    private void loadData() {
+    private void loadUserType() {
 
-        if (userType.equals("player")) {
-            registerUserTypeSpinner.setSelection(0);
-        } else if (userType.equals("watcher")) {
-            registerUserTypeSpinner.setSelection(1);
+        if (getIntent().hasExtra("user_type")) {
+
+            String userType = getIntent().getStringExtra("user_type");
+
+            if (userType.equals("player")) {
+                registerUserTypeSpinner.setSelection(0);
+            } else if (userType.equals("watcher")) {
+                registerUserTypeSpinner.setSelection(1);
+            }
+
         }
 
     }
@@ -218,16 +218,21 @@ public class RegisterActivity extends AppCompatActivity {
                         showError(getString(R.string.confirm_password_cannot_be_empty));
                     }
 
+                    HelperMethods.showKeyboard(RegisterActivity.this);
                     return;
 
                 }
 
                 if (username.length() < 3) {
+                    registerUsername.requestFocus();
+                    HelperMethods.showKeyboard(RegisterActivity.this);
                     showError(getString(R.string.username_too_short));
                     return;
                 }
 
                 if (username.equals("player") || username.equals("watcher")) {
+                    registerUsername.requestFocus();
+                    HelperMethods.showKeyboard(RegisterActivity.this);
                     showError(getString(R.string.username_not_available));
                     return;
                 }
@@ -250,9 +255,16 @@ public class RegisterActivity extends AppCompatActivity {
                             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
                                 if (!queryDocumentSnapshots.isEmpty()) {
+
                                     registerProgressDialog.dismiss();
+
+                                    registerUsername.requestFocus();
+                                    HelperMethods.showKeyboard(RegisterActivity.this);
+
                                     showError(getString(R.string.username_is_not_available));
+
                                     return;
+
                                 }
 
                                 firebaseAuth.createUserWithEmailAndPassword(emailAddress, password)
@@ -262,18 +274,27 @@ public class RegisterActivity extends AppCompatActivity {
 
                                                 FirebaseUser firebaseUser = authResult.getUser();
 
-                                                UserModel userModel = new UserModel(
-                                                        firebaseUser.getUid(),
-                                                        name,
-                                                        username,
-                                                        emailAddress,
-                                                        registerUserTypeSpinner.getSelectedItem().toString().toLowerCase(),
-                                                        null,
-                                                        null,
-                                                        null
-                                                );
+                                                FirebaseMessaging.getInstance()
+                                                        .getToken()
+                                                        .addOnSuccessListener(new OnSuccessListener<String>() {
+                                                            @Override
+                                                            public void onSuccess(String token) {
 
-                                                createUserDatabase(userModel);
+                                                                UserModel userModel = new UserModel(
+                                                                        firebaseUser.getUid(),
+                                                                        name,
+                                                                        username,
+                                                                        emailAddress,
+                                                                        registerUserTypeSpinner.getSelectedItem().toString().toLowerCase(),
+                                                                        null,
+                                                                        null,
+                                                                        token
+                                                                );
+
+                                                                createUserDatabase(userModel);
+
+                                                            }
+                                                        });
 
                                             }
                                         })
@@ -298,7 +319,6 @@ public class RegisterActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 Intent loginIntent = new Intent(RegisterActivity.this, LoginActivity.class);
-                loginIntent.putExtra("user_type", userType);
                 startActivity(loginIntent);
                 finish();
 
@@ -310,18 +330,6 @@ public class RegisterActivity extends AppCompatActivity {
     private void createUserDatabase(UserModel userModel) {
 
         DocumentReference currentUserDocument = HelperMethods.usersCollectionRef(this).document(userModel.getId());
-
-        // Retrieving token here to ensure it is available and not null when proceeding
-        FirebaseMessaging.getInstance()
-                .getToken()
-                .addOnSuccessListener(this, new OnSuccessListener<String>() {
-                    @Override
-                    public void onSuccess(String token) {
-
-                        userModel.setFcm_token(token);
-
-                    }
-                });
 
         currentUserDocument.set(userModel)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -336,7 +344,6 @@ public class RegisterActivity extends AppCompatActivity {
                         Toast.makeText(RegisterActivity.this, getString(R.string.successfully_registered), Toast.LENGTH_SHORT).show();
 
                         Intent mainIntent = new Intent(RegisterActivity.this, MainActivity.class);
-                        mainIntent.putExtra("user_type", userModel.getType());
                         startActivity(mainIntent);
                         finish();
 
@@ -366,12 +373,12 @@ public class RegisterActivity extends AppCompatActivity {
 
         switch (item.getItemId()) {
 
-            default:
-                return false;
-
             case android.R.id.home:
                 finish();
                 return true;
+
+            default:
+                return false;
 
         }
 

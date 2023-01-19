@@ -9,12 +9,10 @@ import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 import ga.jundbits.dareme.R;
-import ga.jundbits.dareme.Utils.HelperMethods;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
@@ -24,28 +22,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public void onCreate() {
         super.onCreate();
         notificationManager = NotificationManagerCompat.from(this);
-    }
-
-    @Override
-    public void onNewToken(@NonNull String token) {
-        super.onNewToken(token);
-
-        FirebaseAuth.getInstance()
-                .addAuthStateListener(firebaseAuth -> {
-
-                    if (firebaseAuth.getCurrentUser() != null)
-                        saveToken(token);
-
-                });
-
-    }
-
-    private void saveToken(String token) {
-
-        HelperMethods
-                .userDocumentRef(getApplicationContext(), HelperMethods.getCurrentUserID())
-                .update("fcm_token", token); // TODO: 23-Dec-22 may need to change how to update document
-
     }
 
     @Override

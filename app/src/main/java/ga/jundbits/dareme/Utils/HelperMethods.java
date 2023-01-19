@@ -35,12 +35,22 @@ public class HelperMethods {
         return usersCollectionRef(context).document(userID);
     }
 
+    public static void showKeyboard(Activity activity) {
+
+        View view = activity.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
+        }
+
+    }
+
     public static void closeKeyboard(Activity activity) {
 
-        View closeKeyboardView = activity.getCurrentFocus();
-        if (closeKeyboardView != null) {
+        View view = activity.getCurrentFocus();
+        if (view != null) {
             InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(closeKeyboardView.getWindowToken(), 0);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
 
     }
