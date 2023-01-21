@@ -248,31 +248,34 @@ public class RegisterActivity extends AppCompatActivity {
                 registerProgressDialog.setCanceledOnTouchOutside(false);
                 registerProgressDialog.show();
 
-                HelperMethods.usersCollectionRef(getApplicationContext())
-                        .whereEqualTo("username", username)
-                        .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                firebaseAuth.createUserWithEmailAndPassword(emailAddress, password)
+                        .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                             @Override
-                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                            public void onSuccess(AuthResult authResult) {
 
-                                if (!queryDocumentSnapshots.isEmpty()) {
+                                FirebaseUser firebaseUser = authResult.getUser();
 
-                                    registerProgressDialog.dismiss();
-
-                                    registerUsername.requestFocus();
-                                    HelperMethods.showKeyboard(RegisterActivity.this);
-
-                                    showError(getString(R.string.username_is_not_available));
-
-                                    return;
-
-                                }
-
-                                firebaseAuth.createUserWithEmailAndPassword(emailAddress, password)
-                                        .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                                HelperMethods.usersCollectionRef(getApplicationContext())
+                                        .whereEqualTo("username", username)
+                                        .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                                             @Override
-                                            public void onSuccess(AuthResult authResult) {
+                                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                                                FirebaseUser firebaseUser = authResult.getUser();
+                                                if (!queryDocumentSnapshots.isEmpty()) {
+
+                                                    registerProgressDialog.dismiss();
+
+                                                    registerUsername.requestFocus();
+                                                    HelperMethods.showKeyboard(RegisterActivity.this);
+
+                                                    showError(getString(R.string.username_is_not_available));
+
+                                                    firebaseAuth.signOut();
+                                                    firebaseUser.delete();
+
+                                                    return;
+
+                                                }
 
                                                 FirebaseMessaging.getInstance()
                                                         .getToken()
@@ -297,16 +300,16 @@ public class RegisterActivity extends AppCompatActivity {
                                                         });
 
                                             }
-                                        })
-                                        .addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-
-                                                registerProgressDialog.dismiss();
-                                                showError(e.getMessage());
-
-                                            }
                                         });
+
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+
+                                registerProgressDialog.dismiss();
+                                showError(e.getMessage());
 
                             }
                         });
@@ -329,6 +332,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void createUserDatabase(UserModel userModel) {
 
+        HelperMethods.setCurrentUserModel(userModel);
         DocumentReference currentUserDocument = HelperMethods.usersCollectionRef(this).document(userModel.getId());
 
         currentUserDocument.set(userModel)
@@ -343,8 +347,8 @@ public class RegisterActivity extends AppCompatActivity {
                         registerProgressDialog.dismiss();
                         Toast.makeText(RegisterActivity.this, getString(R.string.successfully_registered), Toast.LENGTH_SHORT).show();
 
-                        Intent mainIntent = new Intent(RegisterActivity.this, MainActivity.class);
-                        startActivity(mainIntent);
+                        Intent splashIntent = new Intent(RegisterActivity.this, SplashActivity.class);
+                        startActivity(splashIntent);
                         finish();
 
                     }

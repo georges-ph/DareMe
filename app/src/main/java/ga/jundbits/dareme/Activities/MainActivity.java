@@ -53,11 +53,9 @@ import ga.jundbits.dareme.Fragments.HomeFragment;
 import ga.jundbits.dareme.Fragments.MyChallengesFragment;
 import ga.jundbits.dareme.Models.ChallengeCommentsBottomSheetModel;
 import ga.jundbits.dareme.R;
+import ga.jundbits.dareme.Utils.HelperMethods;
 
 public class MainActivity extends AppCompatActivity implements HomeFragment.OpenCommentsBox {
-
-    private String userType;
-    private String challengeID;
 
     private Toolbar mainToolbar;
     private BottomNavigationView mainBottomNavigationView;
@@ -89,7 +87,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
     private FirebaseDynamicLinks firebaseDynamicLinks;
 
     private String currentUserID;
-    private String currentUserUsername;
 
     private DocumentReference currentUserDocument;
 
@@ -109,9 +106,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
     }
 
     private void initVars() {
-
-        userType = getIntent().getExtras().getString("user_type");
-        challengeID = getIntent().getExtras().getString("challenge_id");
 
         mainToolbar = findViewById(R.id.main_toolbar);
         mainBottomNavigationView = findViewById(R.id.main_bottom_navigation_view);
@@ -160,34 +154,10 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
 
     private void loadData() {
 
-        getUserUsername(currentUserDocument);
-
-        currentUserDocument.addSnapshotListener(MainActivity.this, new EventListener<DocumentSnapshot>() {
-            @Override
-            public void onEvent(@javax.annotation.Nullable DocumentSnapshot documentSnapshot, @javax.annotation.Nullable FirebaseFirestoreException e) {
-
-                String message = documentSnapshot.getString("message");
-                boolean messageClosed = documentSnapshot.getBoolean("message_closed");
-
-                Animation fadeIn = AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.fade_in);
-                Animation fadeOut = AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.fade_out);
-
-                if (messageClosed) {
-                    mainBannerLayout.startAnimation(fadeOut);
-                    mainBannerLayout.setVisibility(View.GONE);
-                } else {
-                    mainBannerMessage.setText(message);
-                    mainBannerLayout.setVisibility(View.VISIBLE);
-                    mainBannerLayout.startAnimation(fadeIn);
-                }
-
-            }
-        });
-
-        if (!challengeID.equals("null")) {
+        if (getIntent().hasExtra("challenge_id")) {
 
             Intent challengeIntent = new Intent(MainActivity.this, ChallengeActivity.class);
-            challengeIntent.putExtra("challenge_id", challengeID);
+            challengeIntent.putExtra("challenge_id", getIntent().getStringExtra("challenge_id"));
             startActivity(challengeIntent);
 
         }
@@ -220,7 +190,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
                     case R.id.main_bottom_menu_account_fragment:
                         fragmentManager.beginTransaction().hide(activeFragment).show(accountFragment).commit();
                         activeFragment = accountFragment;
-                        getSupportActionBar().setTitle(currentUserUsername);
+                        getSupportActionBar().setTitle(HelperMethods.getCurrentUserModel().getUsername());
                         return true;
 
                 }
@@ -267,7 +237,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
                         commentMap.put("date_time_millis", timestampTotalMillis);
 
                         firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                .collection("Challenges").document(challengeID)
+                                .collection("Challenges").document(getIntent().getStringExtra("challenge_id"))
                                 .collection("Comments")
                                 .add(commentMap)
                                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
@@ -375,7 +345,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
 
         if (fragment instanceof AccountFragment) {
             AccountFragment accountFragment = (AccountFragment) fragment;
-         }
+        }
 
     }
 
@@ -412,21 +382,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
             }, 2000);
 
         }
-
-    }
-
-    private String getUserUsername(DocumentReference currentUserDocument) {
-
-        currentUserDocument.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot documentSnapshot) {
-
-                currentUserUsername = documentSnapshot.getString("username");
-
-            }
-        });
-
-        return currentUserUsername;
 
     }
 

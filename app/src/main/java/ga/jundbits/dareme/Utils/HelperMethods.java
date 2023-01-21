@@ -14,13 +14,27 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.concurrent.TimeUnit;
 
+import ga.jundbits.dareme.Models.UserModel;
 import ga.jundbits.dareme.R;
 
 public class HelperMethods {
 
+    private static UserModel currentUserModel;
+
+    public static FirebaseUser getCurrentUser() {
+        return FirebaseAuth.getInstance().getCurrentUser();
+    }
+
     public static String getCurrentUserID() {
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        return firebaseUser.getUid();
+        return getCurrentUser() != null ? getCurrentUser().getUid() : null;
+    }
+
+    public static void setCurrentUserModel(UserModel userModel) {
+        HelperMethods.currentUserModel = userModel;
+    }
+
+    public static UserModel getCurrentUserModel() {
+        return currentUserModel;
     }
 
     public static DocumentReference appDocumentRef(Context context) {

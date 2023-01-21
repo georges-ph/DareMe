@@ -115,7 +115,7 @@ public class AccountFragment extends Fragment implements AccountProfileChallenge
                 String description = documentSnapshot.getString("description");
 
                 // Image
-                if (image.equals("default")) {
+                if (image == null) {
                     mainAccountUserImage.setImageResource(R.mipmap.no_image);
                 } else {
                     Glide.with(getContext()).load(image).into(mainAccountUserImage);

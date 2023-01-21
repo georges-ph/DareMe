@@ -222,6 +222,9 @@ public class ChallengeActivity extends AppCompatActivity implements View.OnClick
 
                     DocumentSnapshot documentSnapshot = task.getResult();
 
+                    if (!documentSnapshot.exists())
+                        return;
+
                     // Retrieving
                     final String watcherUserID = documentSnapshot.getString("user_id");
                     final String playerUserID = documentSnapshot.getString("player_user_id");

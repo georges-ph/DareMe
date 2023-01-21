@@ -29,6 +29,7 @@ import ga.jundbits.dareme.Activities.NewChallengeActivity;
 import ga.jundbits.dareme.Adapters.MyChallengesProfileChallengesRecyclerAdapter;
 import ga.jundbits.dareme.Models.MyChallengesProfileChallengesModel;
 import ga.jundbits.dareme.R;
+import ga.jundbits.dareme.Utils.HelperMethods;
 
 public class MyChallengesFragment extends Fragment implements MyChallengesProfileChallengesRecyclerAdapter.ListItemButtonClick {
 
@@ -79,7 +80,7 @@ public class MyChallengesFragment extends Fragment implements MyChallengesProfil
         firebaseUser = firebaseAuth.getCurrentUser();
 
         currentUserID = firebaseUser.getUid();
-        currentUserType = getActivity().getIntent().getExtras().getString("user_type");
+        currentUserType = HelperMethods.getCurrentUserModel().getType();
 
         currentUserDocument = firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Users").document(currentUserID);
 
