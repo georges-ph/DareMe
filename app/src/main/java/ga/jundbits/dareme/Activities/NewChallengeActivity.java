@@ -1,55 +1,39 @@
 package ga.jundbits.dareme.Activities;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Vibrator;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.Timestamp;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
-import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 import ga.jundbits.dareme.Adapters.NewChallengePlayersRecyclerAdapter;
+import ga.jundbits.dareme.Models.ChallengeModel;
 import ga.jundbits.dareme.Models.NewChallengePlayersModel;
 import ga.jundbits.dareme.R;
+import ga.jundbits.dareme.Utils.HelperMethods;
 
 public class NewChallengeActivity extends AppCompatActivity implements NewChallengePlayersRecyclerAdapter.ListItemButtonClick /* implements NewChallengePlayersRecyclerAdapter.ListItemButtonClick */ {
 
@@ -62,20 +46,9 @@ public class NewChallengeActivity extends AppCompatActivity implements NewChalle
     private List<NewChallengePlayersModel> newChallengePlayersModelList;
     private NewChallengePlayersRecyclerAdapter newChallengePlayersRecyclerAdapter;
 
-    private FirebaseFirestore firebaseFirestore;
-    private FirebaseAuth firebaseAuth;
-    private FirebaseUser firebaseUser;
-
     private String currentUserID;
-    private String currentUserImage;
-    private String currentUserUsername;
+    private String selectedPlayerUsername;
     private String playerUserID;
-
-    private DocumentReference currentUserDocument;
-
-    private boolean playerUsernameAvailable = false;
-
-    private Vibrator vibrator;
 
     private ProgressDialog progressDialog;
 
@@ -86,9 +59,8 @@ public class NewChallengeActivity extends AppCompatActivity implements NewChalle
 
         initVars();
         setupToolbar();
-        loadData();
         setupAdapter();
-        loadPlayers();
+        loadData();
         setOnClicks();
 
     }
@@ -102,16 +74,6 @@ public class NewChallengeActivity extends AppCompatActivity implements NewChalle
         newChallengePrize = findViewById(R.id.new_challenge_prize);
         newChallengePlayersRecyclerView = findViewById(R.id.new_challenge_players_recycler_view);
         newChallengeAddChallengeButton = findViewById(R.id.new_challenge_add_challenge_button);
-
-        firebaseFirestore = FirebaseFirestore.getInstance();
-        firebaseAuth = FirebaseAuth.getInstance();
-        firebaseUser = firebaseAuth.getCurrentUser();
-
-        currentUserID = firebaseUser.getUid();
-
-        currentUserDocument = firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Users").document(currentUserID);
-
-        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         progressDialog = new ProgressDialog(NewChallengeActivity.this);
 
@@ -127,10 +89,17 @@ public class NewChallengeActivity extends AppCompatActivity implements NewChalle
 
     }
 
-    private void loadData() {
+    private void setupAdapter() {
 
-        getCurrentUserImage(currentUserDocument);
-        getCurrentUserUsername(currentUserDocument);
+        newChallengePlayersRecyclerAdapter = new NewChallengePlayersRecyclerAdapter(this, newChallengePlayersModelList, this);
+
+        newChallengePlayersRecyclerView.setHasFixedSize(true);
+        newChallengePlayersRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        newChallengePlayersRecyclerView.setAdapter(newChallengePlayersRecyclerAdapter);
+
+    }
+
+    private void loadData() {
 
         newChallengePlayerUsername.addTextChangedListener(new TextWatcher() {
             @Override
@@ -150,23 +119,41 @@ public class NewChallengeActivity extends AppCompatActivity implements NewChalle
                     newChallengePlayersRecyclerView.setVisibility(View.GONE);
                 } else {
                     newChallengePlayersRecyclerView.setVisibility(View.VISIBLE);
-                    filter(s.toString().toLowerCase());
+                    filter(s.toString().toLowerCase().trim());
                 }
-
-                checkPlayerUsername(s.toString());
 
             }
         });
 
     }
 
-    private void setupAdapter() {
+    private void filter(String username) {
 
-        newChallengePlayersRecyclerAdapter = new NewChallengePlayersRecyclerAdapter(this, newChallengePlayersModelList, this);
+        HelperMethods.usersCollectionRef(this)
+                .whereEqualTo("type", "player")
+                .startAt(username).endAt(username + "\uf8ff")
+                .get().addOnSuccessListener(this, new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-        newChallengePlayersRecyclerView.setHasFixedSize(true);
-        newChallengePlayersRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        newChallengePlayersRecyclerView.setAdapter(newChallengePlayersRecyclerAdapter);
+                        if (queryDocumentSnapshots.isEmpty()) {
+                            newChallengePlayersRecyclerView.setVisibility(View.GONE);
+                            return;
+                        }
+
+                        for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
+
+                            NewChallengePlayersModel newChallengePlayersModel = documentSnapshot.toObject(NewChallengePlayersModel.class);
+
+                            newChallengePlayersRecyclerView.setVisibility(View.VISIBLE);
+                            newChallengePlayersModelList.add(newChallengePlayersModel);
+
+                        }
+
+                        newChallengePlayersRecyclerAdapter.updateList(newChallengePlayersModelList);
+
+                    }
+                });
 
     }
 
@@ -176,153 +163,76 @@ public class NewChallengeActivity extends AppCompatActivity implements NewChalle
             @Override
             public void onClick(View v) {
 
-                closeKeyboard();
+                HelperMethods.closeKeyboard(NewChallengeActivity.this);
 
                 String playerUsername = newChallengePlayerUsername.getText().toString().trim();
                 String description = newChallengeDescription.getText().toString().trim();
                 String prize = newChallengePrize.getText().toString().trim();
 
-                if (!TextUtils.isEmpty(playerUsername) && !TextUtils.isEmpty(description) && !TextUtils.isEmpty(prize)) {
-
-                    if (playerUsernameAvailable) {
-
-                        progressDialog.setMessage(getString(R.string.please_wait));
-                        progressDialog.setCancelable(false);
-                        progressDialog.setCanceledOnTouchOutside(false);
-                        progressDialog.show();
-
-                        String[] array = getResources().getStringArray(R.array.colors);
-                        String randomColor = array[new Random().nextInt(array.length)];
-
-                        Timestamp timestamp = Timestamp.now();
-
-                        long timestampSeconds = timestamp.getSeconds();
-                        long timestampNanoSeconds = timestamp.getNanoseconds();
-                        long timestampSecondsToMillis = TimeUnit.SECONDS.toMillis(timestampSeconds);
-                        long timestampNanoSecondsToMillis = TimeUnit.NANOSECONDS.toMillis(timestampNanoSeconds);
-                        long timestampTotalMillis = timestampSecondsToMillis + timestampNanoSecondsToMillis;
-
-                        Map<String, Object> challengeMap = new HashMap<>();
-                        challengeMap.put("image", currentUserImage);
-                        challengeMap.put("username", currentUserUsername);
-                        challengeMap.put("challenges_username", playerUsername);
-                        challengeMap.put("color", randomColor);
-                        challengeMap.put("text", description);
-                        challengeMap.put("prize", prize);
-                        challengeMap.put("user_id", currentUserID);
-                        challengeMap.put("player_user_id", playerUserID);
-                        challengeMap.put("timestamp", FieldValue.serverTimestamp());
-                        challengeMap.put("date_time_millis", timestampTotalMillis);
-                        challengeMap.put("accepted", false);
-                        challengeMap.put("completed", false);
-                        challengeMap.put("failed", false);
-                        challengeMap.put("video_thumbnail", null);
-                        challengeMap.put("video_proof", null);
-
-                        firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                .collection("Challenges")
-                                .add(challengeMap)
-                                .addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<DocumentReference> task) {
-
-                                        if (task.isSuccessful()) {
-
-                                            progressDialog.dismiss();
-
-                                            Toast.makeText(NewChallengeActivity.this, "Challenge added successfully", Toast.LENGTH_SHORT).show();
-
-                                            Intent challengeIntent = new Intent(NewChallengeActivity.this, ChallengeActivity.class);
-                                            challengeIntent.putExtra("challenge_id", task.getResult().getId());
-                                            startActivity(challengeIntent);
-                                            finish();
-
-                                        } else {
-                                            progressDialog.dismiss();
-                                            showError(task.getException().getMessage());
-                                        }
-
-                                    }
-                                });
-
-                    } else {
-                        showError(getString(R.string.username_not_found));
-                    }
-
-                } else {
+                if (TextUtils.isEmpty(playerUsername) || TextUtils.isEmpty(description) || TextUtils.isEmpty(prize)) {
 
                     if (TextUtils.isEmpty(playerUsername)) {
-                        showError(getString(R.string.player_s_username_cannot_be_empty));
+                        HelperMethods.showError(newChallengeConstraintLayout, getString(R.string.player_s_username_cannot_be_empty));
                     } else if (TextUtils.isEmpty(description)) {
-                        showError(getString(R.string.challenge_description_cannot_be_empty));
+                        HelperMethods.showError(newChallengeConstraintLayout, getString(R.string.challenge_description_cannot_be_empty));
                     } else if (TextUtils.isEmpty(prize)) {
-                        showError(getString(R.string.challenge_prize_cannot_be_empty));
+                        HelperMethods.showError(newChallengeConstraintLayout, getString(R.string.challenge_prize_cannot_be_empty));
                     }
+
+                    return;
 
                 }
 
-            }
-        });
-
-    }
-
-    private void closeKeyboard() {
-
-        View closeKeyboardView = NewChallengeActivity.this.getCurrentFocus();
-        if (closeKeyboardView != null) {
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(closeKeyboardView.getWindowToken(), 0);
-        }
-
-    }
-
-    private void showError(String errorMessage) {
-
-        vibrator.vibrate(500);
-        Snackbar.make(newChallengeConstraintLayout, errorMessage, Snackbar.LENGTH_SHORT).show();
-
-    }
-
-    private void filter(String username) {
-
-        List<NewChallengePlayersModel> list = new ArrayList<>();
-
-        for (NewChallengePlayersModel newChallengePlayersModel : newChallengePlayersModelList) {
-
-            if (newChallengePlayersModel.getUsername().toLowerCase().contains(username)) {
-                newChallengePlayersRecyclerView.setVisibility(View.VISIBLE);
-                list.add(newChallengePlayersModel);
-            } else {
-                newChallengePlayersRecyclerView.setVisibility(View.GONE);
-            }
-
-        }
-
-        newChallengePlayersRecyclerAdapter.updateList(list);
-
-    }
-
-    private void loadPlayers() {
-
-        newChallengePlayersModelList.clear();
-
-        Query playersQuery = firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Users").whereEqualTo("type", "player");
-        playersQuery.addSnapshotListener(NewChallengeActivity.this, new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
-
-                for (DocumentChange documentChange : queryDocumentSnapshots.getDocumentChanges()) {
-
-                    if (documentChange.getType() == DocumentChange.Type.ADDED) {
-
-                        NewChallengePlayersModel newChallengePlayersModel = documentChange.getDocument().toObject(NewChallengePlayersModel.class);
-                        newChallengePlayersModelList.add(newChallengePlayersModel);
-
-                        newChallengePlayersRecyclerAdapter.notifyDataSetChanged();
-
-                    }
-
+                if (!playerUsername.equals(selectedPlayerUsername)) {
+                    HelperMethods.showError(newChallengeConstraintLayout, getString(R.string.username_not_found));
+                    return;
                 }
+
+                progressDialog.setMessage(getString(R.string.please_wait));
+                progressDialog.setCancelable(false);
+                progressDialog.setCanceledOnTouchOutside(false);
+                progressDialog.show();
+
+                String[] array = getResources().getStringArray(R.array.colors);
+                String randomColor = array[new Random().nextInt(array.length)];
+
+                ChallengeModel challengeModel = new ChallengeModel(currentUserID,
+                        playerUserID,
+                        randomColor,
+                        description,
+                        prize,
+                        null,
+                        null,
+                        false,
+                        false,
+                        false);
+
+                HelperMethods.challengesCollectionRef(NewChallengeActivity.this)
+                        .add(challengeModel)
+                        .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                            @Override
+                            public void onSuccess(DocumentReference documentReference) {
+
+                                progressDialog.dismiss();
+
+                                Toast.makeText(NewChallengeActivity.this, "Challenge added successfully", Toast.LENGTH_SHORT).show();
+
+                                Intent challengeIntent = new Intent(NewChallengeActivity.this, ChallengeActivity.class);
+                                challengeIntent.putExtra("challenge_id", documentReference.getId());
+                                startActivity(challengeIntent);
+                                finish();
+
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+
+                                progressDialog.dismiss();
+                                HelperMethods.showError(newChallengeConstraintLayout, e.getMessage());
+
+                            }
+                        });
 
             }
         });
@@ -330,10 +240,11 @@ public class NewChallengeActivity extends AppCompatActivity implements NewChalle
     }
 
     @Override
-    public void onListItemButtonClick(String username) {
+    public void onListItemButtonClick(String id, String username) {
+        playerUserID = id;
+        selectedPlayerUsername = username;
         newChallengePlayerUsername.setText(username);
         newChallengePlayersRecyclerView.setVisibility(View.GONE);
-        checkPlayerUsername(username);
     }
 
     @Override
@@ -341,89 +252,14 @@ public class NewChallengeActivity extends AppCompatActivity implements NewChalle
 
         switch (item.getItemId()) {
 
-            default:
-                return false;
-
             case android.R.id.home:
                 finish();
                 return true;
 
+            default:
+                return false;
+
         }
-
-    }
-
-    public boolean checkPlayerUsername(final String username) {
-
-        firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Users").whereEqualTo("username", username)
-                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-
-                        if (queryDocumentSnapshots.isEmpty()) {
-                            playerUsernameAvailable = false;
-                        } else {
-                            playerUsernameAvailable = true;
-                            getPlayerUserID(username);
-                        }
-
-                    }
-                });
-
-        return playerUsernameAvailable;
-
-    }
-
-    public String getCurrentUserImage(DocumentReference currentUserDocument) {
-
-        currentUserDocument.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot documentSnapshot) {
-
-                currentUserImage = documentSnapshot.getString("image");
-
-            }
-        });
-
-        return currentUserImage;
-
-    }
-
-    public String getCurrentUserUsername(DocumentReference currentUserDocument) {
-
-        currentUserDocument.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot documentSnapshot) {
-
-                currentUserUsername = documentSnapshot.getString("username");
-
-            }
-        });
-
-        return currentUserUsername;
-
-    }
-
-    public String getPlayerUserID(String playerUsername) {
-
-        firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Users").whereEqualTo("username", playerUsername)
-                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-
-                        if (!queryDocumentSnapshots.isEmpty()) {
-
-                            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
-
-                                playerUserID = documentSnapshot.getString("id");
-
-                            }
-
-                        }
-
-                    }
-                });
-
-        return currentUserUsername;
 
     }
 

@@ -2,9 +2,13 @@ package ga.jundbits.dareme.Utils;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Vibrator;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
+
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -19,6 +23,7 @@ import ga.jundbits.dareme.R;
 
 public class HelperMethods {
 
+    private static Vibrator vibrator;
     private static UserModel currentUserModel;
 
     public static FirebaseUser getCurrentUser() {
@@ -49,6 +54,10 @@ public class HelperMethods {
         return usersCollectionRef(context).document(userID);
     }
 
+    public static CollectionReference challengesCollectionRef(Context context) {
+        return appDocumentRef(context).collection("Challenges");
+    }
+
     public static void showKeyboard(Activity activity) {
 
         View view = activity.getCurrentFocus();
@@ -66,6 +75,15 @@ public class HelperMethods {
             InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
+
+    }
+
+    public static void showError(ConstraintLayout layout, String errorMessage) {
+
+        vibrator = (Vibrator) layout.getContext().getSystemService(Context.VIBRATOR_SERVICE);
+
+        vibrator.vibrate(500);
+        Snackbar.make(layout, errorMessage, Snackbar.LENGTH_SHORT).show();
 
     }
 

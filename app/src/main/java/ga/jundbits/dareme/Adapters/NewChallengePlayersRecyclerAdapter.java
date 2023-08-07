@@ -52,10 +52,11 @@ public class NewChallengePlayersRecyclerAdapter extends RecyclerView.Adapter<New
 
         holder.setIsRecyclable(true);
 
+        String id = newChallengePlayersModelList.get(position).getId();
         String image = newChallengePlayersModelList.get(position).getImage();
         final String username = newChallengePlayersModelList.get(position).getUsername();
 
-        if (image.equals("default")) {
+        if (image == null) {
             holder.playerUserImage.setImageResource(R.mipmap.no_image);
         } else {
             Glide.with(context).load(image).into(holder.playerUserImage);
@@ -67,7 +68,7 @@ public class NewChallengePlayersRecyclerAdapter extends RecyclerView.Adapter<New
             @Override
             public void onClick(View v) {
 
-                listItemButtonClick.onListItemButtonClick(username);
+                listItemButtonClick.onListItemButtonClick(id, username);
 
             }
         });
@@ -95,7 +96,7 @@ public class NewChallengePlayersRecyclerAdapter extends RecyclerView.Adapter<New
     }
 
     public interface ListItemButtonClick {
-        void onListItemButtonClick(String username);
+        void onListItemButtonClick(String id, String username);
     }
 
 }

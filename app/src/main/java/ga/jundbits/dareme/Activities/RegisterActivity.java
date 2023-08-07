@@ -1,12 +1,10 @@
 package ga.jundbits.dareme.Activities;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Vibrator;
 import android.text.TextUtils;
 import android.text.method.PasswordTransformationMethod;
 import android.view.MenuItem;
@@ -24,7 +22,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -47,8 +44,6 @@ public class RegisterActivity extends AppCompatActivity {
     private Button registerLoginButton;
 
     private FirebaseAuth firebaseAuth;
-
-    private Vibrator vibrator;
 
     private ProgressDialog registerProgressDialog;
 
@@ -83,8 +78,6 @@ public class RegisterActivity extends AppCompatActivity {
         registerLoginButton = findViewById(R.id.register_login_button);
 
         firebaseAuth = FirebaseAuth.getInstance();
-
-        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         registerProgressDialog = new ProgressDialog(RegisterActivity.this);
 
@@ -203,19 +196,19 @@ public class RegisterActivity extends AppCompatActivity {
 
                     if (TextUtils.isEmpty(name)) {
                         registerName.requestFocus();
-                        showError(getString(R.string.name_cannot_be_empty));
+                        HelperMethods.showError(registerConstraintLayout, getString(R.string.name_cannot_be_empty));
                     } else if (TextUtils.isEmpty(username)) {
                         registerUsername.requestFocus();
-                        showError(getString(R.string.username_cannot_be_empty));
+                        HelperMethods.showError(registerConstraintLayout, getString(R.string.username_cannot_be_empty));
                     } else if (TextUtils.isEmpty(emailAddress)) {
                         registerEmailAddress.requestFocus();
-                        showError(getString(R.string.email_address_cannot_be_empty));
+                        HelperMethods.showError(registerConstraintLayout, getString(R.string.email_address_cannot_be_empty));
                     } else if (TextUtils.isEmpty(password)) {
                         registerPassword.requestFocus();
-                        showError(getString(R.string.password_cannot_be_empty));
+                        HelperMethods.showError(registerConstraintLayout, getString(R.string.password_cannot_be_empty));
                     } else if (TextUtils.isEmpty(confirmPassword)) {
                         registerConfirmPassword.requestFocus();
-                        showError(getString(R.string.confirm_password_cannot_be_empty));
+                        HelperMethods.showError(registerConstraintLayout, getString(R.string.confirm_password_cannot_be_empty));
                     }
 
                     HelperMethods.showKeyboard(RegisterActivity.this);
@@ -226,19 +219,19 @@ public class RegisterActivity extends AppCompatActivity {
                 if (username.length() < 3) {
                     registerUsername.requestFocus();
                     HelperMethods.showKeyboard(RegisterActivity.this);
-                    showError(getString(R.string.username_too_short));
+                    HelperMethods.showError(registerConstraintLayout, getString(R.string.username_too_short));
                     return;
                 }
 
                 if (username.equals("player") || username.equals("watcher")) {
                     registerUsername.requestFocus();
                     HelperMethods.showKeyboard(RegisterActivity.this);
-                    showError(getString(R.string.username_not_available));
+                    HelperMethods.showError(registerConstraintLayout, getString(R.string.username_not_available));
                     return;
                 }
 
                 if (!password.equals(confirmPassword)) {
-                    showError(getString(R.string.password_and_confirm_password_dont_match));
+                    HelperMethods.showError(registerConstraintLayout, getString(R.string.password_and_confirm_password_dont_match));
                     return;
                 }
 
@@ -268,7 +261,7 @@ public class RegisterActivity extends AppCompatActivity {
                                                     registerUsername.requestFocus();
                                                     HelperMethods.showKeyboard(RegisterActivity.this);
 
-                                                    showError(getString(R.string.username_is_not_available));
+                                                    HelperMethods.showError(registerConstraintLayout, getString(R.string.username_is_not_available));
 
                                                     firebaseAuth.signOut();
                                                     firebaseUser.delete();
@@ -309,7 +302,7 @@ public class RegisterActivity extends AppCompatActivity {
                             public void onFailure(@NonNull Exception e) {
 
                                 registerProgressDialog.dismiss();
-                                showError(e.getMessage());
+                                HelperMethods.showError(registerConstraintLayout, e.getMessage());
 
                             }
                         });
@@ -358,17 +351,10 @@ public class RegisterActivity extends AppCompatActivity {
                     public void onFailure(@NonNull Exception e) {
 
                         registerProgressDialog.dismiss();
-                        showError(e.getMessage());
+                        HelperMethods.showError(registerConstraintLayout, e.getMessage());
 
                     }
                 });
-
-    }
-
-    private void showError(String errorMessage) {
-
-        vibrator.vibrate(500);
-        Snackbar.make(registerConstraintLayout, errorMessage, Snackbar.LENGTH_SHORT).show();
 
     }
 

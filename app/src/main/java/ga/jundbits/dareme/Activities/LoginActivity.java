@@ -1,12 +1,10 @@
 package ga.jundbits.dareme.Activities;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Vibrator;
 import android.text.TextUtils;
 import android.text.method.PasswordTransformationMethod;
 import android.view.MenuItem;
@@ -23,7 +21,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -41,8 +38,6 @@ public class LoginActivity extends AppCompatActivity {
     private Button loginButton, loginRegisterButton;
 
     private FirebaseAuth firebaseAuth;
-
-    private Vibrator vibrator;
 
     private ProgressDialog loginProgressDialog;
 
@@ -74,8 +69,6 @@ public class LoginActivity extends AppCompatActivity {
         firebaseAuth = FirebaseAuth.getInstance();
 
         loginProgressDialog = new ProgressDialog(this);
-
-        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         loginShowPassword.setColorFilter(Color.RED);
 
@@ -149,10 +142,10 @@ public class LoginActivity extends AppCompatActivity {
 
                     if (TextUtils.isEmpty(emailAddress)) {
                         loginEmailAddress.requestFocus();
-                        showError(getString(R.string.email_address_cannot_be_empty));
+                        HelperMethods.showError(loginConstraintLayout, getString(R.string.email_address_cannot_be_empty));
                     } else if (TextUtils.isEmpty(password)) {
                         loginPassword.requestFocus();
-                        showError(getString(R.string.password_cannot_be_empty));
+                        HelperMethods.showError(loginConstraintLayout, getString(R.string.password_cannot_be_empty));
                     }
 
                     HelperMethods.showKeyboard(LoginActivity.this);
@@ -191,7 +184,7 @@ public class LoginActivity extends AppCompatActivity {
                             public void onFailure(@NonNull Exception e) {
 
                                 loginProgressDialog.dismiss();
-                                showError(e.getMessage());
+                                HelperMethods.showError(loginConstraintLayout, e.getMessage());
 
                             }
                         });
@@ -228,13 +221,6 @@ public class LoginActivity extends AppCompatActivity {
         Intent splashIntent = new Intent(LoginActivity.this, SplashActivity.class);
         startActivity(splashIntent);
         finish();
-
-    }
-
-    private void showError(String errorMessage) {
-
-        vibrator.vibrate(500);
-        Snackbar.make(loginConstraintLayout, errorMessage, Snackbar.LENGTH_SHORT).show();
 
     }
 

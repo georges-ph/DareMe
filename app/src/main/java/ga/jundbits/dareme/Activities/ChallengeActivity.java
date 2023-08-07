@@ -240,7 +240,7 @@ public class ChallengeActivity extends AppCompatActivity implements View.OnClick
                     String videoProof = documentSnapshot.getString("video_proof");
 
                     // Applying
-                    if (image.equals("default")) {
+                    if (image == null) {
                         challengeUserImage.setImageResource(R.mipmap.no_image);
                     } else {
                         Glide.with(ChallengeActivity.this).load(image).into(challengeUserImage);

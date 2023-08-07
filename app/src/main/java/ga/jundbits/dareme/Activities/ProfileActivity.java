@@ -111,7 +111,7 @@ public class ProfileActivity extends AppCompatActivity implements AccountProfile
                 getSupportActionBar().setTitle(username);
 
                 // Image
-                if (image.equals("default")) {
+                if (image == null) {
                     profileUserImage.setImageResource(R.mipmap.no_image);
                 } else {
                     Glide.with(ProfileActivity.this).load(image).into(profileUserImage);

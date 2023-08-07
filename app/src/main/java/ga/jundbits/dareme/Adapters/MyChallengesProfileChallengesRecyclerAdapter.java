@@ -55,7 +55,7 @@ public class MyChallengesProfileChallengesRecyclerAdapter extends FirestorePagin
         long dateTimeMillis = model.getDate_time_millis();
 
         // Applying
-        if (image.equals("default")) {
+        if (image == null) {
             holder.myChallengesUserImage.setImageResource(R.mipmap.no_image);
         } else {
             Glide.with(context).load(image).into(holder.myChallengesUserImage);

@@ -77,7 +77,7 @@ public class MainHomeChallengesRecyclerAdapter extends FirestorePagingAdapter<Ma
         final boolean failed = model.isFailed();
 
         // Applying
-        if (image.equals("default")) {
+        if (image == null) {
             holder.userImage.setImageResource(R.mipmap.no_image);
         } else {
             Glide.with(context).load(image).into(holder.userImage);
