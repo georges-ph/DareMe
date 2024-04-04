@@ -131,7 +131,6 @@ public class NewChallengeActivity extends AppCompatActivity implements NewChalle
 
         HelperMethods.usersCollectionRef(this)
                 .whereEqualTo("type", "player")
-                .startAt(username).endAt(username + "\uf8ff")
                 .get().addOnSuccessListener(this, new OnSuccessListener<QuerySnapshot>() {
                     @Override
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
@@ -140,13 +139,14 @@ public class NewChallengeActivity extends AppCompatActivity implements NewChalle
                             newChallengePlayersRecyclerView.setVisibility(View.GONE);
                             return;
                         }
+                        newChallengePlayersRecyclerView.setVisibility(View.VISIBLE);
 
                         for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
 
                             NewChallengePlayersModel newChallengePlayersModel = documentSnapshot.toObject(NewChallengePlayersModel.class);
 
-                            newChallengePlayersRecyclerView.setVisibility(View.VISIBLE);
-                            newChallengePlayersModelList.add(newChallengePlayersModel);
+                            if (newChallengePlayersModel.getUsername().contains(username) && !newChallengePlayersModelList.contains(newChallengePlayersModel))
+                                newChallengePlayersModelList.add(newChallengePlayersModel);
 
                         }
 

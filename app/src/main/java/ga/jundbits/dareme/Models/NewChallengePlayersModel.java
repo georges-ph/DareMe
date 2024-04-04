@@ -1,5 +1,7 @@
 package ga.jundbits.dareme.Models;
 
+import java.util.Objects;
+
 public class NewChallengePlayersModel {
 
     private String id, image, username;
@@ -38,4 +40,16 @@ public class NewChallengePlayersModel {
         this.username = username;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        NewChallengePlayersModel that = (NewChallengePlayersModel) o;
+        return Objects.equals(id, that.id) && Objects.equals(image, that.image) && Objects.equals(username, that.username);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, image, username);
+    }
 }

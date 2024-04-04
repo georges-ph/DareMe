@@ -622,6 +622,7 @@ public class ChallengeActivity extends AppCompatActivity implements View.OnClick
 
         challengeCommentsRecyclerView.setHasFixedSize(true);
         challengeCommentsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        challengeCommentsRecyclerView.setItemAnimator(null);
         challengeCommentsRecyclerView.setAdapter(challengeCommentsBottomSheetRecyclerAdapter);
 
         if (challengeProofVideoView.isPlaying()) {

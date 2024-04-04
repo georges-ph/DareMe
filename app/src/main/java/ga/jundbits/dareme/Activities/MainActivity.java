@@ -1,6 +1,5 @@
 package ga.jundbits.dareme.Activities;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -9,12 +8,8 @@ import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -31,27 +26,16 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.google.firebase.Timestamp;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
+import com.google.android.material.navigation.NavigationBarView;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
-import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import ga.jundbits.dareme.Adapters.ChallengeCommentsBottomSheetRecyclerAdapter;
 import ga.jundbits.dareme.Fragments.AccountFragment;
 import ga.jundbits.dareme.Fragments.HomeFragment;
 import ga.jundbits.dareme.Fragments.MyChallengesFragment;
 import ga.jundbits.dareme.Models.ChallengeCommentsBottomSheetModel;
+import ga.jundbits.dareme.Models.CommentModel;
 import ga.jundbits.dareme.R;
 import ga.jundbits.dareme.Utils.HelperMethods;
 
@@ -59,10 +43,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
 
     private Toolbar mainToolbar;
     private BottomNavigationView mainBottomNavigationView;
-
-    private ConstraintLayout mainBannerLayout;
-    private TextView mainBannerMessage;
-    private ImageButton mainBannerCloseButton;
 
     private ConstraintLayout commentsBottomSheetConstraintLayout;
     private BottomSheetBehavior commentsBottomSheetBehavior;
@@ -80,13 +60,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
     private AccountFragment accountFragment;
     private FragmentManager fragmentManager;
     private Fragment activeFragment;
-
-    private FirebaseFirestore firebaseFirestore;
-    private FirebaseAuth firebaseAuth;
-    private FirebaseUser firebaseUser;
-    private FirebaseDynamicLinks firebaseDynamicLinks;
-
-    private String currentUserID;
 
     private DocumentReference currentUserDocument;
 
@@ -110,10 +83,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
         mainToolbar = findViewById(R.id.main_toolbar);
         mainBottomNavigationView = findViewById(R.id.main_bottom_navigation_view);
 
-        mainBannerLayout = findViewById(R.id.main_banner_layout);
-        mainBannerMessage = findViewById(R.id.main_banner_message);
-        mainBannerCloseButton = findViewById(R.id.main_banner_close_button);
-
         commentsBottomSheetConstraintLayout = findViewById(R.id.challenge_comments_bottom_sheet_constraint_layout);
         commentsBottomSheetBehavior = BottomSheetBehavior.from(commentsBottomSheetConstraintLayout);
         commentsBottomSheetCloseButton = findViewById(R.id.challenge_comments_bottom_sheet_close_button);
@@ -127,13 +96,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
         fragmentManager = getSupportFragmentManager();
         activeFragment = homeFragment;
 
-        firebaseFirestore = FirebaseFirestore.getInstance();
-        firebaseAuth = FirebaseAuth.getInstance();
-        firebaseUser = firebaseAuth.getCurrentUser();
-        firebaseDynamicLinks = FirebaseDynamicLinks.getInstance();
-
-        currentUserID = firebaseUser.getUid();
-        currentUserDocument = firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Users").document(currentUserID);
+        currentUserDocument = HelperMethods.userDocumentRef(this, HelperMethods.getCurrentUserID());
 
     }
 
@@ -166,14 +129,11 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
 
     private void setOnClicks() {
 
-        mainBottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+        mainBottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
 
                 switch (item.getItemId()) {
-
-                    default:
-                        return false;
 
                     case R.id.main_bottom_menu_home_fragment:
                         fragmentManager.beginTransaction().hide(activeFragment).show(homeFragment).commit();
@@ -193,8 +153,10 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
                         getSupportActionBar().setTitle(HelperMethods.getCurrentUserModel().getUsername());
                         return true;
 
-                }
+                    default:
+                        return false;
 
+                }
             }
         });
 
@@ -213,48 +175,27 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
 
                 commentsBottomSheetCommentEditText.getText().clear();
 
-                currentUserDocument.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                CommentModel commentModel = new CommentModel(comment,
+                        HelperMethods.getCurrentUserID(),
+                        HelperMethods.getCurrentUserModel().getUsername(),
+                        HelperMethods.getCurrentUserModel().getImage(),
+                        HelperMethods.getCurrentTimestamp());
 
-                        String currentUserUsername = documentSnapshot.getString("username");
-                        String currentUserImage = documentSnapshot.getString("image");
-
-                        Timestamp timestamp = Timestamp.now();
-
-                        long timestampSeconds = timestamp.getSeconds();
-                        long timestampNanoSeconds = timestamp.getNanoseconds();
-                        long timestampSecondsToMillis = TimeUnit.SECONDS.toMillis(timestampSeconds);
-                        long timestampNanoSecondsToMillis = TimeUnit.NANOSECONDS.toMillis(timestampNanoSeconds);
-                        long timestampTotalMillis = timestampSecondsToMillis + timestampNanoSecondsToMillis;
-
-                        Map<String, Object> commentMap = new HashMap<>();
-                        commentMap.put("comment", comment);
-                        commentMap.put("user_id", currentUserID);
-                        commentMap.put("username", currentUserUsername);
-                        commentMap.put("image", currentUserImage);
-                        commentMap.put("timestamp", FieldValue.serverTimestamp());
-                        commentMap.put("date_time_millis", timestampTotalMillis);
-
-                        firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                                .collection("Challenges").document(getIntent().getStringExtra("challenge_id"))
-                                .collection("Comments")
-                                .add(commentMap)
-                                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                    @Override
-                                    public void onSuccess(DocumentReference documentReference) {
-                                        commentsRecyclerView.smoothScrollToPosition(0);
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Toast.makeText(MainActivity.this, getString(R.string.error_please_try_again_later), Toast.LENGTH_SHORT).show();
-                                    }
-                                });
-
-                    }
-                });
+                HelperMethods.challengesCollectionRef(MainActivity.this).document(commentsBottomSheetCommentPostButton.getTag().toString())
+                        .collection("Comments")
+                        .add(commentModel)
+                        .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                            @Override
+                            public void onSuccess(DocumentReference documentReference) {
+                                commentsRecyclerView.smoothScrollToPosition(0);
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(MainActivity.this, getString(R.string.error_please_try_again_later), Toast.LENGTH_SHORT).show();
+                            }
+                        });
 
             }
         });
@@ -264,7 +205,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
     @Override
     public void onCommentClicked(final String challengeID) {
 
-        Query query = firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Challenges").document(challengeID).collection("Comments").orderBy("timestamp", Query.Direction.DESCENDING);
+        Query query = HelperMethods.challengesCollectionRef(this).document(challengeID).collection("Comments").orderBy("timestamp", Query.Direction.DESCENDING);
 
         FirestoreRecyclerOptions<ChallengeCommentsBottomSheetModel> options = new FirestoreRecyclerOptions.Builder<ChallengeCommentsBottomSheetModel>()
                 .setLifecycleOwner(this)
@@ -276,6 +217,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
 //  when retrieving a3mela when posting aw abel b shwe w hek
         commentsRecyclerView.setHasFixedSize(true);
         commentsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        commentsRecyclerView.setItemAnimator(null);
         commentsRecyclerView.setAdapter(challengeCommentsBottomSheetRecyclerAdapter);
 
         commentsBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
@@ -286,7 +228,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
 
                 if (newState == BottomSheetBehavior.STATE_DRAGGING || newState == BottomSheetBehavior.STATE_COLLAPSED) {
 
-                    closeKeyboard();
+                    HelperMethods.closeKeyboard(MainActivity.this);
 
                 } else if (newState == BottomSheetBehavior.STATE_EXPANDED) {
 
@@ -305,6 +247,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
         });
 
         commentsBottomSheetCommentPostButton.setEnabled(false);
+        commentsBottomSheetCommentPostButton.setTag(challengeID);
 
         commentsBottomSheetCommentEditText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -345,17 +288,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Open
 
         if (fragment instanceof AccountFragment) {
             AccountFragment accountFragment = (AccountFragment) fragment;
-        }
-
-    }
-
-    private void closeKeyboard() {
-
-        View closeKeyboardView = MainActivity.this.getCurrentFocus();
-        if (closeKeyboardView != null) {
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(closeKeyboardView.getWindowToken(), 0);
-            commentsBottomSheetCommentEditText.clearFocus();
         }
 
     }

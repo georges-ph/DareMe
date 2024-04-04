@@ -51,7 +51,7 @@ public class ChallengeCommentsBottomSheetRecyclerAdapter extends FirestoreRecycl
         long dateTimeMillis = model.getDate_time_millis();
 
         // Applying
-        if (image.equals("default")) {
+        if (image == null) {
             holder.userImage.setImageResource(R.mipmap.no_image);
         } else {
             Glide.with(context).load(image).into(holder.userImage);

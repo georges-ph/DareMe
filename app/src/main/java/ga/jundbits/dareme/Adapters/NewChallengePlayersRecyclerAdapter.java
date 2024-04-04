@@ -50,7 +50,7 @@ public class NewChallengePlayersRecyclerAdapter extends RecyclerView.Adapter<New
     @Override
     public void onBindViewHolder(@NonNull final NewChallengePlayersViewHolder holder, int position) {
 
-        holder.setIsRecyclable(true);
+        holder.setIsRecyclable(false);
 
         String id = newChallengePlayersModelList.get(position).getId();
         String image = newChallengePlayersModelList.get(position).getImage();
