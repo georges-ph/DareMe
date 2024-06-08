@@ -1,17 +1,14 @@
 package ga.jundbits.dareme.Activities;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.text.method.PasswordTransformationMethod;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -20,34 +17,32 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.AggregateSource;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessaging;
 
-import ga.jundbits.dareme.Models.UserModel;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import ga.jundbits.dareme.Models.User;
 import ga.jundbits.dareme.R;
+import ga.jundbits.dareme.Utils.FirebaseHelper;
 import ga.jundbits.dareme.Utils.HelperMethods;
 
 public class RegisterActivity extends AppCompatActivity {
 
     private ConstraintLayout registerConstraintLayout;
+    private ProgressBar registerProgressBar;
     private Toolbar registerToolbar;
     private EditText registerName, registerUsername, registerEmailAddress, registerPassword, registerConfirmPassword;
-    private ImageButton registerShowPassword;
     private Spinner registerUserTypeSpinner;
     private Button registerButton;
     private Button registerLoginButton;
 
-    private FirebaseAuth firebaseAuth;
-
-    private ProgressDialog registerProgressDialog;
-
-    private SharedPreferences registerPreferences;
+    private SharedPreferences authPreferences;
     private SharedPreferences.Editor editor;
 
     @Override
@@ -66,30 +61,22 @@ public class RegisterActivity extends AppCompatActivity {
     private void initVars() {
 
         registerConstraintLayout = findViewById(R.id.register_constraint_layout);
+        registerProgressBar = findViewById(R.id.register_progress_bar);
         registerToolbar = findViewById(R.id.register_toolbar);
         registerName = findViewById(R.id.register_name);
         registerUsername = findViewById(R.id.register_username);
         registerEmailAddress = findViewById(R.id.register_email_address);
         registerPassword = findViewById(R.id.register_password);
         registerConfirmPassword = findViewById(R.id.register_confirm_password);
-        registerShowPassword = findViewById(R.id.register_show_password);
         registerUserTypeSpinner = findViewById(R.id.register_user_type_spinner);
         registerButton = findViewById(R.id.register_button);
         registerLoginButton = findViewById(R.id.register_login_button);
 
-        firebaseAuth = FirebaseAuth.getInstance();
-
-        registerProgressDialog = new ProgressDialog(RegisterActivity.this);
-
-        registerPreferences = getSharedPreferences("RegisterPreferences", MODE_PRIVATE);
-
-        registerShowPassword.setColorFilter(Color.RED);
+        authPreferences = getSharedPreferences("AuthPreferences", MODE_PRIVATE);
 
     }
 
     private void setupToolbar() {
-
-        // TODO: 10-Jan-23 try to use the original toolbar everywhere
 
         setSupportActionBar(registerToolbar);
         getSupportActionBar().setTitle(getString(R.string.register));
@@ -100,26 +87,19 @@ public class RegisterActivity extends AppCompatActivity {
     private void loadUserType() {
 
         if (getIntent().hasExtra("user_type")) {
-
             String userType = getIntent().getStringExtra("user_type");
-
-            if (userType.equals("player")) {
-                registerUserTypeSpinner.setSelection(0);
-            } else if (userType.equals("watcher")) {
-                registerUserTypeSpinner.setSelection(1);
-            }
-
+            registerUserTypeSpinner.setSelection(userType.equals("player") ? 0 : 1);
         }
 
     }
 
     private void loadInputsData() {
 
-        String name = registerPreferences.getString("name", "");
-        String username = registerPreferences.getString("username", "");
-        String email = registerPreferences.getString("email", "");
-        String password = registerPreferences.getString("password", "");
-        String confirmPassword = registerPreferences.getString("confirm_password", "");
+        String name = authPreferences.getString("name", "");
+        String username = authPreferences.getString("username", "");
+        String email = authPreferences.getString("email", "");
+        String password = authPreferences.getString("password", "");
+        String confirmPassword = authPreferences.getString("confirm_password", "");
 
         registerName.setText(name);
         registerUsername.setText(username);
@@ -131,19 +111,13 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void saveInputsData() {
 
-        editor = registerPreferences.edit();
+        editor = authPreferences.edit();
 
-        String name = registerName.getText().toString();
-        String username = registerUsername.getText().toString();
-        String email = registerEmailAddress.getText().toString();
-        String password = registerPassword.getText().toString();
-        String confirmPassword = registerConfirmPassword.getText().toString();
-
-        editor.putString("name", name);
-        editor.putString("username", username);
-        editor.putString("email", email);
-        editor.putString("password", password);
-        editor.putString("confirm_password", confirmPassword);
+        editor.putString("name", registerName.getText().toString());
+        editor.putString("username", registerUsername.getText().toString());
+        editor.putString("email", registerEmailAddress.getText().toString());
+        editor.putString("password", registerPassword.getText().toString());
+        editor.putString("confirm_password", registerConfirmPassword.getText().toString());
 
         editor.apply();
 
@@ -151,226 +125,217 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void setOnClicks() {
 
-        registerShowPassword.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        registerButton.setOnClickListener(v -> {
 
-                if (registerPassword.getTransformationMethod() == null) {
+            HelperMethods.closeKeyboard(RegisterActivity.this);
 
-                    registerPassword.setTransformationMethod(new PasswordTransformationMethod());
-                    registerConfirmPassword.setTransformationMethod(new PasswordTransformationMethod());
+            String name = registerName.getText().toString().trim();
+            String username = registerUsername.getText().toString().toLowerCase().trim();
+            String emailAddress = registerEmailAddress.getText().toString().trim();
+            String password = registerPassword.getText().toString().trim();
+            String confirmPassword = registerConfirmPassword.getText().toString().trim();
 
-                    registerShowPassword.setColorFilter(Color.RED);
+            if (TextUtils.isEmpty(name) || TextUtils.isEmpty(username) || TextUtils.isEmpty(emailAddress) || TextUtils.isEmpty(password) || TextUtils.isEmpty(confirmPassword)) {
 
-                } else {
-
-                    registerPassword.setTransformationMethod(null);
-                    registerConfirmPassword.setTransformationMethod(null);
-
-                    registerShowPassword.setColorFilter(Color.GREEN);
-
+                if (TextUtils.isEmpty(name)) {
+                    registerName.requestFocus();
+                    HelperMethods.showError(registerConstraintLayout, getString(R.string.name_cannot_be_empty));
+                } else if (TextUtils.isEmpty(username)) {
+                    registerUsername.requestFocus();
+                    HelperMethods.showError(registerConstraintLayout, getString(R.string.username_cannot_be_empty));
+                } else if (TextUtils.isEmpty(emailAddress)) {
+                    registerEmailAddress.requestFocus();
+                    HelperMethods.showError(registerConstraintLayout, getString(R.string.email_address_cannot_be_empty));
+                } else if (TextUtils.isEmpty(password)) {
+                    registerPassword.requestFocus();
+                    HelperMethods.showError(registerConstraintLayout, getString(R.string.password_cannot_be_empty));
+                } else if (TextUtils.isEmpty(confirmPassword)) {
+                    registerConfirmPassword.requestFocus();
+                    HelperMethods.showError(registerConstraintLayout, getString(R.string.confirm_password_cannot_be_empty));
                 }
 
-                if (registerPassword.hasFocus()) {
-                    registerPassword.setSelection(registerPassword.getText().length());
-                } else if (registerConfirmPassword.hasFocus()) {
-                    registerConfirmPassword.setSelection(registerConfirmPassword.getText().length());
-                }
+                HelperMethods.showKeyboard(RegisterActivity.this);
+                return;
 
             }
-        });
 
-        registerButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            if (username.length() < 3) {
+                registerUsername.requestFocus();
+                HelperMethods.showKeyboard(RegisterActivity.this);
+                HelperMethods.showError(registerConstraintLayout, getString(R.string.username_too_short));
+                return;
+            }
 
-                HelperMethods.closeKeyboard(RegisterActivity.this);
+            if (username.equals("player") || username.equals("watcher")) {
+                registerUsername.requestFocus();
+                HelperMethods.showKeyboard(RegisterActivity.this);
+                HelperMethods.showError(registerConstraintLayout, getString(R.string.username_not_available));
+                return;
+            }
 
-                String name = registerName.getText().toString().trim();
-                String username = registerUsername.getText().toString().toLowerCase().trim();
-                String emailAddress = registerEmailAddress.getText().toString().trim();
-                String password = registerPassword.getText().toString().trim();
-                String confirmPassword = registerConfirmPassword.getText().toString().trim();
+            if (!password.equals(confirmPassword)) {
+                HelperMethods.showError(registerConstraintLayout, getString(R.string.password_and_confirm_password_dont_match));
+                return;
+            }
 
-                if (TextUtils.isEmpty(name) || TextUtils.isEmpty(username) || TextUtils.isEmpty(emailAddress) || TextUtils.isEmpty(password) || TextUtils.isEmpty(confirmPassword)) {
+            showLoading(true);
 
-                    if (TextUtils.isEmpty(name)) {
-                        registerName.requestFocus();
-                        HelperMethods.showError(registerConstraintLayout, getString(R.string.name_cannot_be_empty));
-                    } else if (TextUtils.isEmpty(username)) {
-                        registerUsername.requestFocus();
-                        HelperMethods.showError(registerConstraintLayout, getString(R.string.username_cannot_be_empty));
-                    } else if (TextUtils.isEmpty(emailAddress)) {
-                        registerEmailAddress.requestFocus();
-                        HelperMethods.showError(registerConstraintLayout, getString(R.string.email_address_cannot_be_empty));
-                    } else if (TextUtils.isEmpty(password)) {
-                        registerPassword.requestFocus();
-                        HelperMethods.showError(registerConstraintLayout, getString(R.string.password_cannot_be_empty));
-                    } else if (TextUtils.isEmpty(confirmPassword)) {
-                        registerConfirmPassword.requestFocus();
-                        HelperMethods.showError(registerConstraintLayout, getString(R.string.confirm_password_cannot_be_empty));
-                    }
+            FirebaseHelper.collectionReference("Users").whereEqualTo("username", username).count().get(AggregateSource.SERVER).addOnSuccessListener(this, aggregateQuerySnapshot -> {
 
-                    HelperMethods.showKeyboard(RegisterActivity.this);
-                    return;
-
-                }
-
-                if (username.length() < 3) {
-                    registerUsername.requestFocus();
-                    HelperMethods.showKeyboard(RegisterActivity.this);
-                    HelperMethods.showError(registerConstraintLayout, getString(R.string.username_too_short));
-                    return;
-                }
-
-                if (username.equals("player") || username.equals("watcher")) {
+                if (aggregateQuerySnapshot.getCount() != 0) {
+                    showLoading(false);
                     registerUsername.requestFocus();
                     HelperMethods.showKeyboard(RegisterActivity.this);
                     HelperMethods.showError(registerConstraintLayout, getString(R.string.username_not_available));
                     return;
                 }
 
-                if (!password.equals(confirmPassword)) {
-                    HelperMethods.showError(registerConstraintLayout, getString(R.string.password_and_confirm_password_dont_match));
-                    return;
-                }
+                FirebaseFirestore.getInstance().collection("RegisteredEmails").document(emailAddress).get().addOnSuccessListener(this, documentSnapshot -> {
 
-                registerProgressDialog.setTitle(getString(R.string.registering));
-                registerProgressDialog.setMessage(getString(R.string.please_wait_do_not_close_the_app));
-                registerProgressDialog.setCancelable(false);
-                registerProgressDialog.setCanceledOnTouchOutside(false);
-                registerProgressDialog.show();
+                    // Email registered
+                    if (documentSnapshot.exists()) {
 
-                firebaseAuth.createUserWithEmailAndPassword(emailAddress, password)
-                        .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
-                            @Override
-                            public void onSuccess(AuthResult authResult) {
+                        List<String> apps = (List<String>) documentSnapshot.get("apps");
 
-                                FirebaseUser firebaseUser = authResult.getUser();
+                        // App registered
+                        if (apps.contains("DareMe")) {
+                            showLoading(false);
+                            HelperMethods.showError(registerConstraintLayout, getString(R.string.email_is_already_registered));
+                            return;
+                        }
 
-                                HelperMethods.usersCollectionRef(getApplicationContext())
-                                        .whereEqualTo("username", username)
-                                        .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                                            @Override
-                                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        // App not registered
+                        FirebaseAuth.getInstance().signInWithEmailAndPassword(emailAddress, password)
+                                .addOnFailureListener(this, e -> {
+                                    showLoading(false);
+                                    HelperMethods.showError(registerConstraintLayout, e.getMessage());
+                                })
+                                .addOnSuccessListener(this, authResult -> {
 
-                                                if (!queryDocumentSnapshots.isEmpty()) {
+                                    FirebaseMessaging.getInstance().getToken().addOnSuccessListener(this, token -> {
 
-                                                    registerProgressDialog.dismiss();
+                                        User user = new User(
+                                                authResult.getUser().getUid(),
+                                                name,
+                                                username,
+                                                emailAddress,
+                                                registerUserTypeSpinner.getSelectedItem().toString().toLowerCase(),
+                                                null,
+                                                null,
+                                                token
+                                        );
 
-                                                    registerUsername.requestFocus();
-                                                    HelperMethods.showKeyboard(RegisterActivity.this);
+                                        FirebaseFirestore.getInstance().collection("RegisteredEmails").document(emailAddress)
+                                                .update("apps", FieldValue.arrayUnion("DareMe"));
 
-                                                    HelperMethods.showError(registerConstraintLayout, getString(R.string.username_is_not_available));
+                                        FirebaseHelper.documentReference("Users/" + user.getId()).set(user)
+                                                .addOnFailureListener(this, e -> {
+                                                    showLoading(false);
+                                                    HelperMethods.showError(registerConstraintLayout, e.getMessage());
+                                                })
+                                                .addOnSuccessListener(this, unused -> registerSuccess());
 
-                                                    firebaseAuth.signOut();
-                                                    firebaseUser.delete();
+                                    });
 
-                                                    return;
+                                });
 
-                                                }
+                        return;
+                    }
 
-                                                FirebaseMessaging.getInstance()
-                                                        .getToken()
-                                                        .addOnSuccessListener(new OnSuccessListener<String>() {
-                                                            @Override
-                                                            public void onSuccess(String token) {
-
-                                                                UserModel userModel = new UserModel(
-                                                                        firebaseUser.getUid(),
-                                                                        name,
-                                                                        username,
-                                                                        emailAddress,
-                                                                        registerUserTypeSpinner.getSelectedItem().toString().toLowerCase(),
-                                                                        null,
-                                                                        null,
-                                                                        token
-                                                                );
-
-                                                                createUserDatabase(userModel);
-
-                                                            }
-                                                        });
-
-                                            }
-                                        });
-
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-
-                                registerProgressDialog.dismiss();
+                    // Email not registered
+                    FirebaseAuth.getInstance().createUserWithEmailAndPassword(emailAddress, password)
+                            .addOnFailureListener(this, e -> {
+                                showLoading(false);
                                 HelperMethods.showError(registerConstraintLayout, e.getMessage());
+                            })
+                            .addOnSuccessListener(this, authResult -> {
 
-                            }
-                        });
+                                Map<String, Object> map = new HashMap<>();
+                                map.put("id", authResult.getUser().getUid());
+                                map.put("email", emailAddress);
+                                map.put("apps", FieldValue.arrayUnion("DareMe"));
 
-            }
+                                FirebaseFirestore.getInstance().collection("RegisteredEmails").document(emailAddress)
+                                        .set(map);
+
+                                FirebaseMessaging.getInstance().getToken().addOnSuccessListener(this, token -> {
+
+                                    User user = new User(
+                                            authResult.getUser().getUid(),
+                                            name,
+                                            username,
+                                            emailAddress,
+                                            registerUserTypeSpinner.getSelectedItem().toString().toLowerCase(),
+                                            null,
+                                            null,
+                                            token
+                                    );
+
+                                    FirebaseHelper.documentReference("Users/" + user.getId()).set(user)
+                                            .addOnFailureListener(this, e -> {
+                                                showLoading(false);
+                                                HelperMethods.showError(registerConstraintLayout, e.getMessage());
+                                            })
+                                            .addOnSuccessListener(this, unused -> registerSuccess());
+
+                                });
+
+                            });
+
+                });
+
+            });
+
         });
 
-        registerLoginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        registerLoginButton.setOnClickListener(v -> {
 
-                Intent loginIntent = new Intent(RegisterActivity.this, LoginActivity.class);
-                startActivity(loginIntent);
-                finish();
+            Intent loginIntent = new Intent(RegisterActivity.this, LoginActivity.class);
+            startActivity(loginIntent);
+            finish();
 
-            }
         });
 
     }
 
-    private void createUserDatabase(UserModel userModel) {
+    private void showLoading(boolean loading) {
 
-        HelperMethods.setCurrentUserModel(userModel);
-        DocumentReference currentUserDocument = HelperMethods.usersCollectionRef(this).document(userModel.getId());
+        if (loading) {
+            registerProgressBar.setVisibility(View.VISIBLE);
+            registerButton.setEnabled(false);
+            registerLoginButton.setEnabled(false);
+        } else {
+            registerProgressBar.setVisibility(View.GONE);
+            registerButton.setEnabled(true);
+            registerLoginButton.setEnabled(true);
+        }
 
-        currentUserDocument.set(userModel)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void unused) {
+    }
 
-                        editor = registerPreferences.edit();
-                        editor.clear();
-                        editor.apply();
+    private void registerSuccess() {
 
-                        registerProgressDialog.dismiss();
-                        Toast.makeText(RegisterActivity.this, getString(R.string.successfully_registered), Toast.LENGTH_SHORT).show();
+        editor = authPreferences.edit();
+        editor.clear();
+        editor.apply();
 
-                        Intent splashIntent = new Intent(RegisterActivity.this, SplashActivity.class);
-                        startActivity(splashIntent);
-                        finish();
+        showLoading(false);
+        Toast.makeText(RegisterActivity.this, getString(R.string.successfully_registered), Toast.LENGTH_SHORT).show();
 
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-
-                        registerProgressDialog.dismiss();
-                        HelperMethods.showError(registerConstraintLayout, e.getMessage());
-
-                    }
-                });
+        Intent splashIntent = new Intent(RegisterActivity.this, SplashActivity.class);
+        splashIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(splashIntent);
+        finish();
 
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
-        switch (item.getItemId()) {
-
-            case android.R.id.home:
-                finish();
-                return true;
-
-            default:
-                return false;
-
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
         }
+        return false;
 
     }
 

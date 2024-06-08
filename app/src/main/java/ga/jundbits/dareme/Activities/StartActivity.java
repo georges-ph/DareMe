@@ -3,7 +3,6 @@ package ga.jundbits.dareme.Activities;
 import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -46,19 +45,8 @@ public class StartActivity extends AppCompatActivity {
 
     private void setOnClicks() {
 
-        startPlayerButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                launchRegisterActivity("player");
-            }
-        });
-
-        startWatcherButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                launchRegisterActivity("watcher");
-            }
-        });
+        startPlayerButton.setOnClickListener(v -> launchRegisterActivity("player"));
+        startWatcherButton.setOnClickListener(v -> launchRegisterActivity("watcher"));
 
     }
 
@@ -67,7 +55,6 @@ public class StartActivity extends AppCompatActivity {
         Intent registerIntent = new Intent(StartActivity.this, RegisterActivity.class);
         registerIntent.putExtra("user_type", userType);
         startActivity(registerIntent);
-        finish();
 
     }
 

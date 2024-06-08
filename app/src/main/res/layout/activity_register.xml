@@ -19,6 +19,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <ProgressBar
+        android:id="@+id/register_progress_bar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/register_toolbar" />
+
     <androidx.core.widget.NestedScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -26,7 +37,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/register_toolbar">
+        app:layout_constraintTop_toBottomOf="@+id/register_progress_bar">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -109,10 +120,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
-                android:layout_marginEnd="8dp"
-                app:layout_constraintEnd_toStartOf="@+id/register_show_password"
+                android:layout_marginEnd="16dp"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textInputLayout3">
+                app:layout_constraintTop_toBottomOf="@+id/textInputLayout3"
+                app:passwordToggleEnabled="true">
 
                 <EditText
                     android:id="@+id/register_password"
@@ -123,8 +135,6 @@
                     android:fontFamily="@font/raleway_medium"
                     android:hint="@string/password"
                     android:inputType="textPassword" />
-
-                <!-- TODO: ybayin eza match huwe w l confirm pass aw la2 yghayir l background aw shi -->
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -137,7 +147,8 @@
                 android:layout_marginEnd="16dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textInputLayout4">
+                app:layout_constraintTop_toBottomOf="@+id/textInputLayout4"
+                app:passwordToggleEnabled="true">
 
                 <EditText
                     android:id="@+id/register_confirm_password"
@@ -150,18 +161,6 @@
                     android:inputType="textPassword" />
 
             </com.google.android.material.textfield.TextInputLayout>
-
-            <ImageButton
-                android:id="@+id/register_show_password"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:layout_weight="1"
-                android:background="?selectableItemBackgroundBorderless"
-                app:layout_constraintBottom_toBottomOf="@+id/textInputLayout4"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/textInputLayout4"
-                app:srcCompat="@drawable/ic_view_password_32dp" />
 
             <Spinner
                 android:id="@+id/register_user_type_spinner"

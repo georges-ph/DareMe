@@ -1,77 +1,46 @@
 package ga.jundbits.dareme.Adapters;
 
+import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.firebase.ui.firestore.paging.FirestorePagingAdapter;
 import com.firebase.ui.firestore.paging.FirestorePagingOptions;
 
-import ga.jundbits.dareme.Models.AccountProfileChallengesModel;
+import ga.jundbits.dareme.Callbacks.OnChallengeClick;
+import ga.jundbits.dareme.Models.Challenge;
 import ga.jundbits.dareme.R;
+import ga.jundbits.dareme.ViewHolders.AccountProfileChallengesViewHolder;
 
-public class AccountProfileChallengesRecyclerAdapter extends FirestorePagingAdapter<AccountProfileChallengesModel, AccountProfileChallengesRecyclerAdapter.ProfileChallengesViewHolder> {
+public class AccountProfileChallengesRecyclerAdapter extends FirestorePagingAdapter<Challenge, AccountProfileChallengesViewHolder> {
 
-    private OnListItemClick onListItemClick;
+    private final OnChallengeClick onChallengeClick;
     private Context context;
 
-    public AccountProfileChallengesRecyclerAdapter(@NonNull FirestorePagingOptions<AccountProfileChallengesModel> options, OnListItemClick onListItemClick, Context context) {
+    public AccountProfileChallengesRecyclerAdapter(@NonNull FirestorePagingOptions<Challenge> options, Context context, OnChallengeClick onChallengeClick) {
         super(options);
-        this.onListItemClick = onListItemClick;
         this.context = context;
-    }
-
-    @Override
-    protected void onBindViewHolder(@NonNull ProfileChallengesViewHolder holder, int position, @NonNull AccountProfileChallengesModel model) {
-
-        String videoThumbnail = model.getVideo_thumbnail();
-        Glide.with(context).load(videoThumbnail).into(holder.accountProfileChallengesListItemImage);
-
+        this.onChallengeClick = onChallengeClick;
     }
 
     @NonNull
     @Override
-    public ProfileChallengesViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.main_account_profile_challenges_list_item, parent, false);
-        return new ProfileChallengesViewHolder(view);
+    public AccountProfileChallengesViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        context = parent.getContext();
+        View view = LayoutInflater.from(context).inflate(R.layout.main_account_profile_challenges_list_item, parent, false);
+        return new AccountProfileChallengesViewHolder(view);
     }
 
-    public class ProfileChallengesViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-
-        ImageView accountProfileChallengesListItemImage;
-
-        public ProfileChallengesViewHolder(@NonNull View itemView) {
-            super(itemView);
-
-            accountProfileChallengesListItemImage = itemView.findViewById(R.id.account_profile_challenges_list_item_image);
-
-            int screenWidth = context.getResources().getDisplayMetrics().widthPixels;
-            int imageWidth = screenWidth / 3;
-
-            ViewGroup.LayoutParams params = accountProfileChallengesListItemImage.getLayoutParams();
-            params.width = imageWidth;
-            params.height = imageWidth;
-            accountProfileChallengesListItemImage.setLayoutParams(params);
-
-            itemView.setOnClickListener(this);
-
-        }
-
-        @Override
-        public void onClick(View v) {
-            onListItemClick.onItemClick(getItem(getAdapterPosition()).getId());
-        }
-
-    }
-
-    public interface OnListItemClick {
-        void onItemClick(String challengeID);
+    @Override
+    protected void onBindViewHolder(@NonNull AccountProfileChallengesViewHolder holder, int position, @NonNull Challenge challenge) {
+        holder.setImage((Activity) context);
+        Glide.with(context).load(challenge.getVideo_url()).into(holder.getImage());
+        holder.itemView.setOnClickListener(view -> onChallengeClick.onClick(getItem(position).getId(), challenge));
     }
 
 }

@@ -3,99 +3,62 @@ package ga.jundbits.dareme.Utils;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Vibrator;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.Timestamp;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Random;
 
-import ga.jundbits.dareme.Models.UserModel;
+import ga.jundbits.dareme.Models.User;
 import ga.jundbits.dareme.R;
 
 public class HelperMethods {
 
-    private static Vibrator vibrator;
-    private static UserModel currentUserModel;
+    private static User currentUser;
 
-    public static FirebaseUser getCurrentUser() {
-        return FirebaseAuth.getInstance().getCurrentUser();
+    public static void setCurrentUser(User user) {
+        HelperMethods.currentUser = user;
     }
 
-    public static String getCurrentUserID() {
-        return getCurrentUser() != null ? getCurrentUser().getUid() : null;
-    }
-
-    public static void setCurrentUserModel(UserModel userModel) {
-        HelperMethods.currentUserModel = userModel;
-    }
-
-    public static UserModel getCurrentUserModel() {
-        return currentUserModel;
-    }
-
-    public static DocumentReference appDocumentRef(Context context) {
-        return FirebaseFirestore.getInstance().collection(context.getString(R.string.app_name)).document("AppCollections");
-    }
-
-    public static CollectionReference usersCollectionRef(Context context) {
-        return appDocumentRef(context).collection("Users");
-    }
-
-    public static DocumentReference userDocumentRef(Context context, String userID) {
-        return usersCollectionRef(context).document(userID);
-    }
-
-    public static CollectionReference challengesCollectionRef(Context context) {
-        return appDocumentRef(context).collection("Challenges");
+    public static User getCurrentUser() {
+        return currentUser;
     }
 
     public static void showKeyboard(Activity activity) {
-
         View view = activity.getCurrentFocus();
         if (view != null) {
             InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
         }
-
     }
 
     public static void closeKeyboard(Activity activity) {
-
         View view = activity.getCurrentFocus();
         if (view != null) {
             InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
-
     }
 
     public static void showError(ConstraintLayout layout, String errorMessage) {
-
-        vibrator = (Vibrator) layout.getContext().getSystemService(Context.VIBRATOR_SERVICE);
-
+        Vibrator vibrator = (Vibrator) layout.getContext().getSystemService(Context.VIBRATOR_SERVICE);
         vibrator.vibrate(500);
         Snackbar.make(layout, errorMessage, Snackbar.LENGTH_SHORT).show();
-
     }
 
-    public static long getCurrentTimestamp() {
+    public static String randomColor(Context context) {
+        String[] array = context.getResources().getStringArray(R.array.colors);
+        return array[new Random().nextInt(array.length)];
+    }
 
-        Timestamp timestamp = Timestamp.now();
-        long seconds = timestamp.getSeconds();
-        long nanoseconds = timestamp.getNanoseconds();
-        long secondsToMillis = TimeUnit.SECONDS.toMillis(seconds);
-        long nanoSecondsToMillis = TimeUnit.NANOSECONDS.toMillis(nanoseconds);
-        return secondsToMillis + nanoSecondsToMillis;
-
+    public static int getScreenWidth(Activity activity) {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        activity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        return displayMetrics.widthPixels;
     }
 
 }

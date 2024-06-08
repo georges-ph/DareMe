@@ -99,34 +99,25 @@
                         app:layout_constraintTop_toTopOf="@+id/challenge_user_image"
                         tools:text="1 minute ago" />
 
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/challenge_text_layout"
+                    <TextView
+                        android:id="@+id/challenge_text"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:background="@color/blue_500"
+                        android:fontFamily="@font/raleway_medium"
+                        android:padding="24dp"
+                        android:textAlignment="center"
+                        android:textColor="@android:color/white"
+                        android:textSize="18sp"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/challenge_user_image">
+                        app:layout_constraintTop_toBottomOf="@+id/challenge_user_image"
+                        tools:text="Challenge text will be shown here no matter what and no matter how long it is" />
 
-                        <TextView
-                            android:id="@+id/challenge_text"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/raleway_medium"
-                            android:padding="24dp"
-                            android:textAlignment="center"
-                            android:textColor="@android:color/white"
-                            android:textSize="18sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            tools:text="Challenge text will be shown here no matter what and no matter how long it is" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <TextView
-                        android:id="@+id/challenge_prize_list"
+                        android:id="@+id/challenge_rewards"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
@@ -136,9 +127,9 @@
                         android:textColor="@android:color/black"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/challenge_text_layout"
+                        app:layout_constraintTop_toBottomOf="@+id/challenge_text"
                         app:lineHeight="24dp"
-                        tools:text="Prize:\n1) 5 insta followers\n2) story shoutout" />
+                        tools:text="Rewards:\n1) 5 insta followers\n2) story shoutout" />
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/challenge_status_completed_layout"
@@ -149,7 +140,7 @@
                         android:visibility="gone"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/challenge_prize_list">
+                        app:layout_constraintTop_toBottomOf="@id/challenge_rewards">
 
                         <ImageView
                             android:id="@+id/imageView2"

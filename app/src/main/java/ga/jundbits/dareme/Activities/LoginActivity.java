@@ -1,47 +1,39 @@
 package ga.jundbits.dareme.Activities;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.text.method.PasswordTransformationMethod;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessaging;
 
+import java.util.List;
+
 import ga.jundbits.dareme.R;
+import ga.jundbits.dareme.Utils.FirebaseHelper;
 import ga.jundbits.dareme.Utils.HelperMethods;
 
 public class LoginActivity extends AppCompatActivity {
 
     private ConstraintLayout loginConstraintLayout;
+    private ProgressBar loginProgressBar;
     private Toolbar loginToolbar;
     private EditText loginEmailAddress, loginPassword;
-    private ImageButton loginShowPassword;
     private Button loginButton, loginRegisterButton;
 
-    private FirebaseAuth firebaseAuth;
-
-    private ProgressDialog loginProgressDialog;
-
-    private SharedPreferences loginPreferences;
+    private SharedPreferences authPreferences;
     private SharedPreferences.Editor editor;
 
     @Override
@@ -59,20 +51,14 @@ public class LoginActivity extends AppCompatActivity {
     private void initVars() {
 
         loginConstraintLayout = findViewById(R.id.login_constraint_layout);
+        loginProgressBar = findViewById(R.id.login_progress_bar);
         loginToolbar = findViewById(R.id.login_toolbar);
         loginEmailAddress = findViewById(R.id.login_email_address);
         loginPassword = findViewById(R.id.login_password);
-        loginShowPassword = findViewById(R.id.login_show_password);
         loginButton = findViewById(R.id.login_button);
         loginRegisterButton = findViewById(R.id.login_register_button);
 
-        firebaseAuth = FirebaseAuth.getInstance();
-
-        loginProgressDialog = new ProgressDialog(this);
-
-        loginShowPassword.setColorFilter(Color.RED);
-
-        loginPreferences = getSharedPreferences("LoginPreferences", MODE_PRIVATE);
+        authPreferences = getSharedPreferences("AuthPreferences", MODE_PRIVATE);
 
     }
 
@@ -86,8 +72,8 @@ public class LoginActivity extends AppCompatActivity {
 
     private void loadInputsData() {
 
-        String email = loginPreferences.getString("email", "");
-        String password = loginPreferences.getString("password", "");
+        String email = authPreferences.getString("email", "");
+        String password = authPreferences.getString("password", "");
 
         loginEmailAddress.setText(email);
         loginPassword.setText(password);
@@ -96,13 +82,10 @@ public class LoginActivity extends AppCompatActivity {
 
     private void saveInputsData() {
 
-        editor = loginPreferences.edit();
+        editor = authPreferences.edit();
 
-        String email = loginEmailAddress.getText().toString();
-        String password = loginPassword.getText().toString();
-
-        editor.putString("email", email);
-        editor.putString("password", password);
+        editor.putString("email", loginEmailAddress.getText().toString());
+        editor.putString("password", loginPassword.getText().toString());
 
         editor.apply();
 
@@ -110,115 +93,101 @@ public class LoginActivity extends AppCompatActivity {
 
     private void setOnClicks() {
 
-        loginShowPassword.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        loginButton.setOnClickListener(v -> {
 
-                if (loginPassword.getTransformationMethod() == null) {
-                    loginPassword.setTransformationMethod(new PasswordTransformationMethod());
-                    loginShowPassword.setColorFilter(Color.RED);
-                } else {
-                    loginPassword.setTransformationMethod(null);
-                    loginShowPassword.setColorFilter(Color.GREEN);
+            HelperMethods.closeKeyboard(LoginActivity.this);
+
+            String emailAddress = loginEmailAddress.getText().toString().trim();
+            String password = loginPassword.getText().toString().trim();
+
+            if (TextUtils.isEmpty(emailAddress) || TextUtils.isEmpty(password)) {
+
+                if (TextUtils.isEmpty(emailAddress)) {
+                    loginEmailAddress.requestFocus();
+                    HelperMethods.showError(loginConstraintLayout, getString(R.string.email_address_cannot_be_empty));
+                } else if (TextUtils.isEmpty(password)) {
+                    loginPassword.requestFocus();
+                    HelperMethods.showError(loginConstraintLayout, getString(R.string.password_cannot_be_empty));
                 }
 
-                if (loginPassword.hasFocus()) {
-                    loginPassword.setSelection(loginPassword.getText().length());
-                }
+                HelperMethods.showKeyboard(LoginActivity.this);
+                return;
 
             }
-        });
 
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            showLoading(true);
 
-                HelperMethods.closeKeyboard(LoginActivity.this);
+            FirebaseFirestore.getInstance().collection("RegisteredEmails").document(emailAddress).get().addOnSuccessListener(this, documentSnapshot -> {
 
-                String emailAddress = loginEmailAddress.getText().toString().trim();
-                String password = loginPassword.getText().toString().trim();
-
-                if (TextUtils.isEmpty(emailAddress) || TextUtils.isEmpty(password)) {
-
-                    if (TextUtils.isEmpty(emailAddress)) {
-                        loginEmailAddress.requestFocus();
-                        HelperMethods.showError(loginConstraintLayout, getString(R.string.email_address_cannot_be_empty));
-                    } else if (TextUtils.isEmpty(password)) {
-                        loginPassword.requestFocus();
-                        HelperMethods.showError(loginConstraintLayout, getString(R.string.password_cannot_be_empty));
-                    }
-
-                    HelperMethods.showKeyboard(LoginActivity.this);
+                // Email not registered
+                if (!documentSnapshot.exists()) {
+                    showLoading(false);
+                    HelperMethods.showError(loginConstraintLayout, getString(R.string.incorrect_email_password));
                     return;
-
                 }
 
-                loginProgressDialog.setTitle(getString(R.string.logging_in));
-                loginProgressDialog.setMessage(getString(R.string.please_wait_do_not_close_the_app));
-                loginProgressDialog.setCanceledOnTouchOutside(false);
-                loginProgressDialog.setCancelable(false);
-                loginProgressDialog.show();
+                // Email registered
+                List<String> apps = (List<String>) documentSnapshot.get("apps");
 
-                firebaseAuth.signInWithEmailAndPassword(emailAddress, password)
-                        .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
-                            @Override
-                            public void onSuccess(AuthResult authResult) {
+                // App not registered
+                if (!apps.contains("DareMe")) {
+                    showLoading(false);
+                    HelperMethods.showError(loginConstraintLayout, getString(R.string.app_is_not_registered));
+                    return;
+                }
 
-                                FirebaseUser firebaseUser = authResult.getUser();
-
-                                FirebaseMessaging.getInstance()
-                                        .getToken()
-                                        .addOnSuccessListener(new OnSuccessListener<String>() {
-                                            @Override
-                                            public void onSuccess(String token) {
-
-                                                updateUserDatabase(firebaseUser.getUid(), token);
-
-                                            }
-                                        });
-
-                            }
+                // App registered
+                FirebaseAuth.getInstance().signInWithEmailAndPassword(emailAddress, password)
+                        .addOnFailureListener(this, e -> {
+                            showLoading(false);
+                            HelperMethods.showError(loginConstraintLayout, e.getMessage());
                         })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-
-                                loginProgressDialog.dismiss();
-                                HelperMethods.showError(loginConstraintLayout, e.getMessage());
-
-                            }
+                        .addOnSuccessListener(this, authResult -> {
+                            FirebaseMessaging.getInstance().getToken()
+                                    .addOnSuccessListener(this, token -> FirebaseHelper.documentReference("Users/" + authResult.getUser().getUid())
+                                            .update("fcm_token", token)
+                                            .addOnSuccessListener(this, unused -> loginSuccess()));
                         });
 
-            }
+            });
 
         });
 
-        loginRegisterButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        loginRegisterButton.setOnClickListener(v -> {
 
-                Intent registerIntent = new Intent(LoginActivity.this, RegisterActivity.class);
-                startActivity(registerIntent);
-                finish();
+            Intent registerIntent = new Intent(LoginActivity.this, RegisterActivity.class);
+            startActivity(registerIntent);
+            finish();
 
-            }
         });
 
     }
 
-    private void updateUserDatabase(String currentUserID, String token) {
+    private void showLoading(boolean loading) {
 
-        editor = loginPreferences.edit();
+        if (loading) {
+            loginProgressBar.setVisibility(View.VISIBLE);
+            loginButton.setEnabled(false);
+            loginRegisterButton.setEnabled(false);
+        } else {
+            loginProgressBar.setVisibility(View.GONE);
+            loginButton.setEnabled(true);
+            loginRegisterButton.setEnabled(true);
+        }
+
+    }
+
+    private void loginSuccess() {
+
+        editor = authPreferences.edit();
         editor.clear();
         editor.apply();
 
-        HelperMethods.userDocumentRef(this, currentUserID)
-                .update("fcm_token", token);
-
-        loginProgressDialog.dismiss();
+        showLoading(false);
         Toast.makeText(LoginActivity.this, getString(R.string.successfully_logged_in), Toast.LENGTH_SHORT).show();
 
         Intent splashIntent = new Intent(LoginActivity.this, SplashActivity.class);
+        splashIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(splashIntent);
         finish();
 
@@ -227,16 +196,11 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        switch (item.getItemId()) {
-
-            case android.R.id.home:
-                finish();
-                return true;
-
-            default:
-                return false;
-
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
         }
+        return false;
 
     }
 

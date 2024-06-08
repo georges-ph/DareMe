@@ -4,25 +4,23 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.database.GenericTypeIndicator;
+
+import java.util.Map;
 
 import ga.jundbits.dareme.R;
+import ga.jundbits.dareme.Utils.FirebaseHelper;
 
 public class HelpActivity extends AppCompatActivity {
 
     private Toolbar helpToolbar;
     private TextView helpGoogleFormsText, helpWhatsAppText;
-
-    private FirebaseFirestore firebaseFirestore;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,8 +39,6 @@ public class HelpActivity extends AppCompatActivity {
         helpGoogleFormsText = findViewById(R.id.help_google_forms_text);
         helpWhatsAppText = findViewById(R.id.help_whatsapp_text);
 
-        firebaseFirestore = FirebaseFirestore.getInstance();
-
     }
 
     private void setupToolbar() {
@@ -55,55 +51,41 @@ public class HelpActivity extends AppCompatActivity {
 
     private void loadData() {
 
-        firebaseFirestore.collection(getString(R.string.app_name_no_spaces)).document("AppCollections")
-                .collection("App").document("Contact")
-                .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+        FirebaseHelper.databaseReference("contact").get().addOnSuccessListener(this, dataSnapshot -> {
 
-                        final String googleForms = documentSnapshot.getString("google_forms");
-                        final String whatsApp = documentSnapshot.getString("whatsapp");
+            Map<String, String> contact = dataSnapshot.getValue(new GenericTypeIndicator<Map<String, String>>() {});
 
-                        helpGoogleFormsText.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
+            String googleForms = contact.get("google_forms");
+            String whatsApp = contact.get("whatsapp");
 
-                                Intent intent = new Intent(Intent.ACTION_VIEW);
-                                intent.setData(Uri.parse(googleForms));
-                                startActivity(intent);
+            helpGoogleFormsText.setOnClickListener(v -> {
 
-                            }
-                        });
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(googleForms));
+                startActivity(intent);
 
-                        helpWhatsAppText.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
+            });
 
-                                Intent intent = new Intent(Intent.ACTION_VIEW);
-                                intent.setData(Uri.parse(whatsApp));
-                                startActivity(intent);
+            helpWhatsAppText.setOnClickListener(v -> {
 
-                            }
-                        });
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(whatsApp));
+                startActivity(intent);
 
-                    }
-                });
+            });
+
+        });
 
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
-        switch (item.getItemId()) {
-
-            default:
-                return false;
-
-            case android.R.id.home:
-                finish();
-                return true;
-
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
         }
+        return false;
 
     }
 

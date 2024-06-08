@@ -16,38 +16,24 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.firebase.ui.firestore.paging.FirestorePagingOptions;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import ga.jundbits.dareme.Activities.NewChallengeActivity;
-import ga.jundbits.dareme.Adapters.MyChallengesProfileChallengesRecyclerAdapter;
-import ga.jundbits.dareme.Models.MyChallengesProfileChallengesModel;
+import ga.jundbits.dareme.Adapters.MainMyChallengesRecyclerAdapter;
+import ga.jundbits.dareme.Models.Challenge;
 import ga.jundbits.dareme.R;
+import ga.jundbits.dareme.Utils.FirebaseHelper;
 import ga.jundbits.dareme.Utils.HelperMethods;
 
-public class MyChallengesFragment extends Fragment implements MyChallengesProfileChallengesRecyclerAdapter.ListItemButtonClick {
+public class MyChallengesFragment extends Fragment {
 
     private SwipeRefreshLayout myChallengesSwipeRefreshLayout;
     private TextView myChallengesYouChallengedText;
     private RecyclerView myChallengesChallengesRecyclerView;
     private FloatingActionButton myChallengesFAB;
 
-    private MyChallengesProfileChallengesRecyclerAdapter myChallengesProfileChallengesRecyclerAdapter;
-
-    private FirebaseFirestore firebaseFirestore;
-    private FirebaseAuth firebaseAuth;
-    private FirebaseUser firebaseUser;
-
-    private String currentUserID;
-    private String currentUserType;
-
-    private DocumentReference currentUserDocument;
+    private MainMyChallengesRecyclerAdapter challengesRecyclerAdapter;
 
     public MyChallengesFragment() {
 
@@ -75,70 +61,43 @@ public class MyChallengesFragment extends Fragment implements MyChallengesProfil
         myChallengesChallengesRecyclerView = view.findViewById(R.id.main_my_challenges_recycler_view);
         myChallengesFAB = view.findViewById(R.id.main_my_challenges_new_challenge_fab);
 
-        firebaseFirestore = FirebaseFirestore.getInstance();
-        firebaseAuth = FirebaseAuth.getInstance();
-        firebaseUser = firebaseAuth.getCurrentUser();
-
-        currentUserID = firebaseUser.getUid();
-        currentUserType = HelperMethods.getCurrentUserModel().getType();
-
-        currentUserDocument = firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Users").document(currentUserID);
-
     }
 
     private void loadMyChallenges() {
 
-        if (currentUserType.equals("player")) {
-            myChallengesFAB.setVisibility(View.GONE);
-        } else if (currentUserType.equals("watcher")) {
-            myChallengesFAB.setVisibility(View.VISIBLE);
-        }
-
         Query query = null;
 
-        if (currentUserType.equals("player")) {
-            query = firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Challenges").whereEqualTo("player_user_id", currentUserID);
-        } else if (currentUserType.equals("watcher")) {
-            query = firebaseFirestore.collection(getContext().getString(R.string.app_name_no_spaces)).document("AppCollections").collection("Challenges").whereEqualTo("user_id", currentUserID);
+        if (HelperMethods.getCurrentUser().getType().equals("player")) {
+            myChallengesFAB.setVisibility(View.GONE);
+            query = FirebaseHelper.collectionReference("Challenges").whereEqualTo("player_id", FirebaseHelper.getCurrentUser().getUid());
+        } else if (HelperMethods.getCurrentUser().getType().equals("watcher")) {
+            myChallengesFAB.setVisibility(View.VISIBLE);
+            query = FirebaseHelper.collectionReference("Challenges").whereEqualTo("watcher_id", FirebaseHelper.getCurrentUser().getUid());
         }
 
-        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+        query.get().addOnSuccessListener(queryDocumentSnapshots -> {
 
-                if (queryDocumentSnapshots.isEmpty()) {
-
-                    if (currentUserType.equals("player")) {
-                        myChallengesYouChallengedText.setText(getContext().getString(R.string.you_havent_been_challenged_by_anyone));
-                    } else if (currentUserType.equals("watcher")) {
-                        myChallengesYouChallengedText.setText(getContext().getString(R.string.you_havent_challenged_anyone));
-                    }
-
-                } else {
-
-                    if (currentUserType.equals("player")) {
-                        myChallengesYouChallengedText.setText(getContext().getString(R.string.you_have_been_challenged_by));
-                    } else if (currentUserType.equals("watcher")) {
-                        myChallengesYouChallengedText.setText(getContext().getString(R.string.you_have_challenged));
-                    }
-
-                }
-
+            if (queryDocumentSnapshots.isEmpty()) {
+                myChallengesYouChallengedText.setText(HelperMethods.getCurrentUser().getType().equals("player") ? getContext().getString(R.string.you_havent_been_challenged_by_anyone) : getContext().getString(R.string.you_havent_challenged_anyone));
+            } else {
+                myChallengesYouChallengedText.setText(HelperMethods.getCurrentUser().getType().equals("player") ? getContext().getString(R.string.you_have_been_challenged_by) : getContext().getString(R.string.you_have_challenged));
             }
+
         });
 
         PagingConfig config = new PagingConfig(3, 5, false, 15);
 
-        FirestorePagingOptions<MyChallengesProfileChallengesModel> options = new FirestorePagingOptions.Builder<MyChallengesProfileChallengesModel>()
+        FirestorePagingOptions<Challenge> options = new FirestorePagingOptions.Builder<Challenge>()
                 .setLifecycleOwner(this)
-                .setQuery(query, config, MyChallengesProfileChallengesModel.class)
+                .setQuery(query, config, Challenge.class)
                 .build();
 
-        myChallengesProfileChallengesRecyclerAdapter = new MyChallengesProfileChallengesRecyclerAdapter(options, getContext(), this);
-
-        myChallengesChallengesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        myChallengesChallengesRecyclerView.setHasFixedSize(true);
-        myChallengesChallengesRecyclerView.setAdapter(myChallengesProfileChallengesRecyclerAdapter);
+        if (challengesRecyclerAdapter == null) {
+            challengesRecyclerAdapter = new MainMyChallengesRecyclerAdapter(options, getContext());
+            myChallengesChallengesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+            myChallengesChallengesRecyclerView.setHasFixedSize(true);
+            myChallengesChallengesRecyclerView.setAdapter(challengesRecyclerAdapter);
+        }
 
         if (myChallengesSwipeRefreshLayout.isRefreshing()) {
             myChallengesSwipeRefreshLayout.setRefreshing(false);
@@ -148,27 +107,15 @@ public class MyChallengesFragment extends Fragment implements MyChallengesProfil
 
     private void setOnClicks() {
 
-        myChallengesSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                loadMyChallenges();
-            }
+        myChallengesSwipeRefreshLayout.setOnRefreshListener(() -> {
+            challengesRecyclerAdapter.refresh();
+            myChallengesSwipeRefreshLayout.setRefreshing(false);
         });
 
-        myChallengesFAB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Intent newChallengeIntent = new Intent(getContext(), NewChallengeActivity.class);
-                getContext().startActivity(newChallengeIntent);
-
-            }
+        myChallengesFAB.setOnClickListener(v -> {
+            Intent newChallengeIntent = new Intent(getContext(), NewChallengeActivity.class);
+            getContext().startActivity(newChallengeIntent);
         });
-
-    }
-
-    @Override
-    public void onListItemButtonClick(String buttonName, String username, String challengeID, int challengePosition) {
 
     }
 
