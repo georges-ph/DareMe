@@ -1,5 +1,5 @@
 plugins {
-    id 'com.android.application'
+    alias(libs.plugins.androidApplication)
     id 'com.google.gms.google-services'
 }
 
@@ -9,8 +9,8 @@ android {
 
     defaultConfig {
         applicationId "ga.jundbits.dareme"
-        minSdk 21
-        targetSdk 33
+        minSdk 23
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
@@ -27,6 +27,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -36,56 +41,41 @@ android {
 dependencies {
 
     // AndroidX
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation libs.appcompat
+    implementation libs.activity
+    implementation libs.constraintlayout
+    implementation libs.paging
 
     // Google
-    implementation 'com.google.android.material:material:1.11.0'
-    implementation 'com.google.code.gson:gson:2.11.0'
+    implementation libs.material
+    implementation libs.gson
 
     // Circle Image View
-    implementation 'de.hdodenhof:circleimageview:3.1.0'
-
-    // Firebase
-    implementation platform('com.google.firebase:firebase-bom:32.8.0')
-    implementation 'com.google.firebase:firebase-firestore'
-    implementation 'com.google.firebase:firebase-database'
-    implementation 'com.google.firebase:firebase-auth'
-    implementation 'com.google.firebase:firebase-storage'
-    implementation 'com.google.firebase:firebase-dynamic-links'
-    implementation 'com.google.firebase:firebase-messaging'
-    implementation 'com.google.firebase:firebase-config'
-    implementation 'com.google.firebase:firebase-analytics'
-
-    // Firebase UI
-    implementation 'com.firebaseui:firebase-ui-firestore:8.0.2'
-    implementation 'com.firebaseui:firebase-ui-auth:8.0.2'
-    implementation 'com.firebaseui:firebase-ui-storage:8.0.2'
-
-    // Dexter
-    implementation 'com.karumi:dexter:6.2.3'
-
-    // Firestore Paging
-    implementation 'androidx.paging:paging-runtime:3.1.1'
+    implementation libs.circleImageView
 
     // Glide
-    implementation 'com.github.bumptech.glide:glide:4.14.2'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.14.2'
-
-    // QuickShot
-    implementation 'io.github.muddz:quickshot:1.4.0'
-
-    // SimpleStorage
-    implementation 'com.anggrayudi:storage:1.5.2'
-
-    implementation 'com.github.yesidlazaro:GmailBackground:1.2.0'
+    implementation libs.glide
+    annotationProcessor libs.glide.processor
 
     // TimeAgo
-    implementation 'com.github.marlonlom:timeago:4.0.3'
+    implementation libs.timeago
 
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.4'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
+    // Firebase UI
+    implementation libs.firebaseui.firestore
+
+    // Firebase
+    implementation platform(libs.firebase.bom)
+    implementation libs.firebase.firestore
+    implementation libs.firebase.database
+    implementation libs.firebase.auth
+    implementation libs.firebase.storage
+    implementation libs.firebase.dynamicLinks
+    implementation libs.firebase.messaging
+    implementation libs.firebase.config
+    implementation libs.firebase.analytics
+
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
 
 }

@@ -148,30 +148,24 @@ public class MainActivity extends AppCompatActivity implements OnCommentsClick {
 
         mainBottomNavigationView.setOnItemSelectedListener(item -> {
 
-            switch (item.getItemId()) {
-
-                case R.id.main_bottom_menu_home_fragment:
-                    fragmentManager.beginTransaction().hide(activeFragment).show(homeFragment).commit();
-                    activeFragment = homeFragment;
-                    getSupportActionBar().setTitle(getString(R.string.app_name));
-                    return true;
-
-                case R.id.main_bottom_menu_my_challenges_fragment:
-                    fragmentManager.beginTransaction().hide(activeFragment).show(myChallengesFragment).commit();
-                    activeFragment = myChallengesFragment;
-                    getSupportActionBar().setTitle(getString(R.string.app_name));
-                    return true;
-
-                case R.id.main_bottom_menu_account_fragment:
-                    fragmentManager.beginTransaction().hide(activeFragment).show(accountFragment).commit();
-                    activeFragment = accountFragment;
-                    getSupportActionBar().setTitle(HelperMethods.getCurrentUser().getUsername());
-                    return true;
-
-                default:
-                    return false;
-
+            int itemId = item.getItemId();
+            if (itemId == R.id.main_bottom_menu_home_fragment) {
+                fragmentManager.beginTransaction().hide(activeFragment).show(homeFragment).commit();
+                activeFragment = homeFragment;
+                getSupportActionBar().setTitle(getString(R.string.app_name));
+                return true;
+            } else if (itemId == R.id.main_bottom_menu_my_challenges_fragment) {
+                fragmentManager.beginTransaction().hide(activeFragment).show(myChallengesFragment).commit();
+                activeFragment = myChallengesFragment;
+                getSupportActionBar().setTitle(getString(R.string.app_name));
+                return true;
+            } else if (itemId == R.id.main_bottom_menu_account_fragment) {
+                fragmentManager.beginTransaction().hide(activeFragment).show(accountFragment).commit();
+                activeFragment = accountFragment;
+                getSupportActionBar().setTitle(HelperMethods.getCurrentUser().getUsername());
+                return true;
             }
+            return false;
         });
 
         challengeCommentsBottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
@@ -269,25 +263,20 @@ public class MainActivity extends AppCompatActivity implements OnCommentsClick {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
-        switch (item.getItemId()) {
-
-            case R.id.main_menu_help:
-                Intent helpIntent = new Intent(MainActivity.this, HelpActivity.class);
-                startActivity(helpIntent);
-                return true;
-
-            case R.id.main_menu_logout:
-                FirebaseHelper.logout();
-                Intent splashIntent = new Intent(MainActivity.this, SplashActivity.class);
-                splashIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(splashIntent);
-                finish();
-                return true;
-
-            default:
-                return false;
-
+        int itemID = item.getItemId();
+        if (itemID == R.id.main_menu_help) {
+            Intent helpIntent = new Intent(MainActivity.this, HelpActivity.class);
+            startActivity(helpIntent);
+            return true;
+        } else if (itemID == R.id.main_menu_logout) {
+            FirebaseHelper.logout();
+            Intent splashIntent = new Intent(MainActivity.this, SplashActivity.class);
+            splashIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(splashIntent);
+            finish();
+            return true;
         }
+        return false;
 
     }
 

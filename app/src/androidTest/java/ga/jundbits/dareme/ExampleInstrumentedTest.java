@@ -1,4 +1,4 @@
-package ga.jayp.dareme;
+package ga.jundbits.dareme;
 
 import android.content.Context;
 

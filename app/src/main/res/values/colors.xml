@@ -5,8 +5,9 @@
     <color name="white">#FFFFFFFF</color>
     <color name="grey">#808080</color>
 
-	<color name="red_200">#D94223</color>
-	<color name="red_500">#E1320F</color>
+    <color name="red_50">#FFDBD4</color>
+    <color name="red_200">#D94223</color>
+    <color name="red_500">#E1320F</color>
     <color name="red_700">#CD2D0A</color>
     <color name="blue_200">#1D8BBB</color>
     <color name="blue_500">#0A73A0</color>
