@@ -48,7 +48,6 @@
     <string name="error_please_try_again_later">Error! Please try again later</string>
     <string name="error_please_try_again">Error! Please try again</string>
     <string name="press_again_to_exit">Press again to exit</string>
-    <string name="error_sharing_the_challenge">Error sharing the challenge</string>
     <string name="reject_challenge">Reject challenge</string>
     <string name="rejecting_the_challenge_will_mark_this_challenge_as_failed_this_action_cannot_be_undone_do_you_want_to_proceed">Rejecting the challenge will mark this challenge as failed. This action cannot be undone. Do you want to proceed?</string>
     <string name="followers">followers</string>

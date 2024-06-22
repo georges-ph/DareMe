@@ -12,10 +12,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.splashscreen.SplashScreen;
 
-import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
-import com.google.firebase.storage.FirebaseStorage;
 
 import ga.jundbits.dareme.BuildConfig;
 import ga.jundbits.dareme.Models.User;
@@ -29,9 +27,6 @@ public class SplashActivity extends AppCompatActivity {
     private Button splashUpdateButton;
 
     private FirebaseRemoteConfig firebaseRemoteConfig;
-    private FirebaseDynamicLinks firebaseDynamicLinks;
-    private FirebaseStorage firebaseStorage;
-
     private String challengeID;
 
     public static final String updateFromURL = "https://bit.ly/3cu9i1t";
@@ -56,8 +51,6 @@ public class SplashActivity extends AppCompatActivity {
         splashUpdateButton = findViewById(R.id.splash_update_button);
 
         firebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
-        firebaseDynamicLinks = FirebaseDynamicLinks.getInstance();
-        firebaseStorage = FirebaseStorage.getInstance();
 
         FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder()
                 .setMinimumFetchIntervalInSeconds(60 * 60 * 2) // 2 hours
@@ -132,17 +125,13 @@ public class SplashActivity extends AppCompatActivity {
 
     private void prepareForMainActivity() {
 
-        // TODO: 08-Jun-24 change this once changed deep link service
-        firebaseDynamicLinks.getDynamicLink(getIntent())
-                .addOnSuccessListener(pendingDynamicLinkData -> {
+        // Get deep link
+        Uri appLinkData = getIntent().getData();
+        if (appLinkData != null) {
+            challengeID = appLinkData.getLastPathSegment();
+        }
 
-                    if (pendingDynamicLinkData != null) {
-                        Uri deepLink = pendingDynamicLinkData.getLink();
-                        challengeID = firebaseStorage.getReferenceFromUrl(String.valueOf(deepLink)).getName();
-                    }
-
-                });
-
+        // Get notification intent
         if (getIntent().hasExtra("challenge_id")) {
             challengeID = getIntent().getStringExtra("challenge_id");
         }

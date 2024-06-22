@@ -52,8 +52,8 @@
         <activity
             android:name=".Activities.SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.DareMe.Starting"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.DareMe.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -66,7 +66,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:host="dareme.page.link"
+                    android:host="daareeemeeee.firebaseapp.com"
+                    android:pathPrefix="/challenge/"
                     android:scheme="https" />
             </intent-filter>
             <intent-filter>

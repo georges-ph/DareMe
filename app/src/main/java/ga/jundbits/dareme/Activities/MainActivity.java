@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,7 @@ import ga.jundbits.dareme.Callbacks.OnCommentsClick;
 import ga.jundbits.dareme.Fragments.AccountFragment;
 import ga.jundbits.dareme.Fragments.HomeFragment;
 import ga.jundbits.dareme.Fragments.MyChallengesFragment;
+import ga.jundbits.dareme.Models.Challenge;
 import ga.jundbits.dareme.Models.Comment;
 import ga.jundbits.dareme.R;
 import ga.jundbits.dareme.Utils.FirebaseHelper;
@@ -135,11 +137,20 @@ public class MainActivity extends AppCompatActivity implements OnCommentsClick {
 
     private void loadData() {
 
-        // TODO: 08-Jun-24 fix this when fixing MyFirebaseMessagingService
         if (getIntent().hasExtra("challenge_id")) {
-            Intent challengeIntent = new Intent(MainActivity.this, ChallengeActivity.class);
-            challengeIntent.putExtra("challenge_id", getIntent().getStringExtra("challenge_id"));
-            startActivity(challengeIntent);
+
+            FirebaseHelper.documentReference("Challenges/" + getIntent().getStringExtra("challenge_id")).get().addOnSuccessListener(documentSnapshot -> {
+
+                Bundle bundle = new Bundle();
+                bundle.putString("challenge", new Gson().toJson(documentSnapshot.toObject(Challenge.class)));
+                bundle.putString("challenge_id", getIntent().getStringExtra("challenge_id"));
+
+                Intent challengeIntent = new Intent(MainActivity.this, ChallengeActivity.class);
+                challengeIntent.putExtras(bundle);
+                startActivity(challengeIntent);
+
+            });
+
         }
 
     }

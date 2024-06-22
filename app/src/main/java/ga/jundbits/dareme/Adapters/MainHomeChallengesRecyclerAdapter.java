@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -147,24 +146,22 @@ public class MainHomeChallengesRecyclerAdapter extends FirestorePagingAdapter<Ch
         holder.getCommentButton().setOnClickListener(view -> onCommentsClick.onClick(getItem(position).getId()));
 
         holder.getShareButton().setOnClickListener(view -> {
-            // TODO: 25-May-24 implement using another service (NOT Firebase)
-            FirebaseHelper.createShareUrl(getItem(position).getId(), challenge)
-                    .addOnFailureListener((Activity) context, e -> Toast.makeText(context, context.getString(R.string.error_sharing_the_challenge), Toast.LENGTH_SHORT).show())
-                    .addOnSuccessListener((Activity) context, shortDynamicLink -> {
 
-                        challenge.setShare_count(challenge.getShare_count() + 1);
-                        holder.getShareCounter().setText(String.valueOf(challenge.getShare_count()));
-                        challengeDocument.update("share_count", FieldValue.increment(1));
+            challenge.setShare_count(challenge.getShare_count() + 1);
+            holder.getShareCounter().setText(String.valueOf(challenge.getShare_count()));
+            challengeDocument.update("share_count", FieldValue.increment(1));
 
-                        Intent sendIntent = new Intent();
-                        sendIntent.setAction(Intent.ACTION_SEND);
-                        sendIntent.putExtra(Intent.EXTRA_TEXT, shortDynamicLink.getShortLink().toString());
-                        sendIntent.setType("text/plain");
+            String shareText = challenge.getWatcher_username() + " has challenged " + challenge.getPlayer_username();
+            String shareURL = "https://daareeemeeee.firebaseapp.com/challenge/" + getItem(position).getId();
 
-                        Intent shareIntent = Intent.createChooser(sendIntent, "Share challenge");
-                        context.startActivity(shareIntent);
+            Intent sendIntent = new Intent();
+            sendIntent.setAction(Intent.ACTION_SEND);
+            sendIntent.putExtra(Intent.EXTRA_TEXT, shareText + "\n" + shareURL);
+            sendIntent.setType("text/plain");
 
-                    });
+            Intent shareIntent = Intent.createChooser(sendIntent, "Share challenge");
+            context.startActivity(shareIntent);
+
         });
 
     }

@@ -1,6 +1,5 @@
 package ga.jundbits.dareme.Activities;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
 import android.media.MediaPlayer;
@@ -269,21 +268,20 @@ public class ChallengeActivity extends AppCompatActivity {
         challengeCommentButton.setOnClickListener(view -> openComments());
         challengeShareButton.setOnClickListener(view -> {
 
-            FirebaseHelper.createShareUrl(challengeDocument.getId(), challenge)
-                    .addOnFailureListener((Activity) getApplicationContext(), e -> Toast.makeText(getApplicationContext(), getString(R.string.error_sharing_the_challenge), Toast.LENGTH_SHORT).show())
-                    .addOnSuccessListener((Activity) getApplicationContext(), shortDynamicLink -> {
+            challenge.setShare_count(challenge.getShare_count() + 1);
+            challengeShareCounter.setText(String.valueOf(challenge.getShare_count()));
+            challengeDocument.update("share_count", FieldValue.increment(1));
 
-                        challengeDocument.update("share_count", FieldValue.increment(1));
+            String shareText = challenge.getWatcher_username() + " has challenged " + challenge.getPlayer_username();
+            String shareURL = "https://daareeemeeee.firebaseapp.com/challenge/" + challengeDocument.getId();
 
-                        Intent sendIntent = new Intent();
-                        sendIntent.setAction(Intent.ACTION_SEND);
-                        sendIntent.putExtra(Intent.EXTRA_TEXT, shortDynamicLink.getShortLink().toString());
-                        sendIntent.setType("text/plain");
+            Intent sendIntent = new Intent();
+            sendIntent.setAction(Intent.ACTION_SEND);
+            sendIntent.putExtra(Intent.EXTRA_TEXT, shareText + "\n" + shareURL);
+            sendIntent.setType("text/plain");
 
-                        Intent shareIntent = Intent.createChooser(sendIntent, "Share challenge");
-                        startActivity(shareIntent);
-
-                    });
+            Intent shareIntent = Intent.createChooser(sendIntent, "Share challenge");
+            startActivity(shareIntent);
 
         });
 
