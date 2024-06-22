@@ -20,4 +20,11 @@
         <!-- Popup menu -->
         <item name="colorSurfaceContainer">@color/red_50</item>
     </style>
+
+    <style name="Theme.DareMe.Starting" parent="Theme.SplashScreen.IconBackground">
+        <item name="windowSplashScreenBackground">@color/red_500</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.DareMe</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/white</item>
+    </style>
 </resources>

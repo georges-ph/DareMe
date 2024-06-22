@@ -45,6 +45,7 @@ dependencies {
     implementation libs.activity
     implementation libs.constraintlayout
     implementation libs.paging
+    implementation libs.splash
 
     // Google
     implementation libs.material

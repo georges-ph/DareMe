@@ -7,6 +7,7 @@ appcompat = "1.7.0"
 activity = "1.9.0"
 constraintlayout = "2.1.4"
 paging = "3.3.0"
+splash = "1.0.1"
 material = "1.12.0"
 gson = "2.11.0"
 googleServices = "4.4.2"
@@ -32,6 +33,7 @@ appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "a
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 paging = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
+splash = { group = "androidx.core", name = "core-splashscreen", version.ref = "splash" }
 
 # Google
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }

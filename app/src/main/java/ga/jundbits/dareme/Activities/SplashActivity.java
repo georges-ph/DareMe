@@ -10,6 +10,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.splashscreen.SplashScreen;
 
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
@@ -24,8 +25,6 @@ import ga.jundbits.dareme.Utils.HelperMethods;
 
 public class SplashActivity extends AppCompatActivity {
 
-    // TODO: 17-Dec-22 https://developer.android.com/develop/ui/views/launch/splash-screen/migrate 
-
     private ConstraintLayout splashUpdateLayout;
     private Button splashUpdateButton;
 
@@ -39,6 +38,9 @@ public class SplashActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        SplashScreen.installSplashScreen(this);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
